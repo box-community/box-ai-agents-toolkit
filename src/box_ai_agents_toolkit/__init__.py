@@ -1,2 +1,6 @@
-def hello() -> str:
-    return "Hello from box-ai-agents-toolkit!"
+from box_ai_agents_toolkit.box_authentication import get_ccg_client
+
+
+__all__ = [
+    "get_ccg_client",
+]

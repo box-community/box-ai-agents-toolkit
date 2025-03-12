@@ -1,4 +1,3 @@
-from typing import Optional
 from box_sdk_gen import (
     BoxClient,
     CCGConfig,
@@ -7,7 +6,6 @@ from box_sdk_gen import (
     OAuthConfig,
     BoxOAuth,
     GetAuthorizeUrlOptions,
-    AccessToken,
 )
 from dotenv import load_dotenv
 import os

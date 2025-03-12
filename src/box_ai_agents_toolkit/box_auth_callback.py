@@ -9,7 +9,7 @@ import urllib.parse
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from box_sdk_gen import BoxClient, BoxOAuth
+from box_sdk_gen import BoxOAuth
 
 CSRF_TOKEN_ORIG = ""
 AUTH = None

@@ -2,20 +2,24 @@
 
 import json
 import logging
-import dotenv
-import os
 from dataclasses import dataclass
 from typing import Iterable, List, Union
-
 import requests
+
 from box_sdk_gen import (
+    AiAgentAsk,
+    AiAgentAskTypeField,
+    AiAgentBasicTextTool,
+    AiAgentExtract,
+    AiAgentExtractTypeField,
+    AiAgentLongTextTool,
     AiExtractResponse,
     AiItemBase,
     AiItemBaseTypeField,
-    BoxCCGAuth,
+    AiSingleAgentResponseFull,
     BoxClient,
     BoxSDKError,
-    CCGConfig,
+    ByteStream,
     CreateAiAskMode,
     CreateAiExtractStructuredFields,
     CreateAiExtractStructuredFieldsOptionsField,
@@ -24,16 +28,7 @@ from box_sdk_gen import (
     FolderMini,
     SearchForContentContentTypes,
     SearchForContentType,
-    ByteStream,
-    AiSingleAgentResponseFull,
-    AiAgentAsk,
-    AiAgentAskTypeField,
-    AiAgentLongTextTool,
-    AiAgentBasicTextTool,
-    AiAgentExtract,
-    AiAgentExtractTypeField,
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +105,7 @@ def box_file_text_extract(client: BoxClient, file_id: str) -> str:
     # Download and truncate the raw content
     raw_content = _do_request(client, url)
 
-    # check to see if rawcontent is bytes
+    # check to see if raw content is bytes
     if isinstance(raw_content, bytes):
         return raw_content.decode("utf-8")
     else:
