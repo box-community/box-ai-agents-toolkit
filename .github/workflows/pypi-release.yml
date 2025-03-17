@@ -57,6 +57,8 @@ jobs:
     - name: Generate changelog updates
       run: |
         bash .github/scripts/generate_changelog.sh $TAG
+        # Save the latest changelog entry for the release notes
+        head -n 20 CHANGELOG_UPDATES.md > RELEASE_NOTES.md
     
     - name: Build package
       run: |
