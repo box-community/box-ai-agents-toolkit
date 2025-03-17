@@ -46,6 +46,8 @@ jobs:
     
     - name: Run tests
       run: |
+        echo "Running tests"
+        echo "current path: $(pwd)"
         uv run pytest
     
     - name: Update version in pyproject.toml
