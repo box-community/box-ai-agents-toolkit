@@ -41,17 +41,17 @@ jobs:
     
     - name: Run linting
       run: |
-        source .venv/bin/activate
+        # source .venv/bin/activate
         uv run ruff check .
     
     - name: Run tests
       run: |
-        source .venv/bin/activate
+        # source .venv/bin/activate
         uv run pytest
     
     - name: Update version in pyproject.toml
       run: |
-        source .venv/bin/activate
+        # source .venv/bin/activate
         python .github/scripts/update_version.py $VERSION
     
     - name: Generate changelog updates
@@ -60,20 +60,29 @@ jobs:
     
     - name: Build package
       run: |
-        source .venv/bin/activate
+        # source .venv/bin/activate
         python -m build
     
     - name: Publish to PyPI
       env:
         PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       run: |
-        source .venv/bin/activate
-        python -m twine upload --skip-existing --repository pypi dist/* -u __token__ -p $PYPI_API_TOKEN
+        echo "Publishing to pypi"
+        echo "VERSION=$VERSION"
+        echo "TAG=$TAG"
+        
+        # source .venv/bin/activate
+        # python -m twine upload --skip-existing --repository pypi dist/* -u __token__ -p $PYPI_API_TOKEN
     
     - name: Commit version and changelog updates
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add pyproject.toml CHANGELOG.md
-        git commit -m "Update version to $VERSION and changelog [skip ci]" || echo "No changes to commit"
-        git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || echo "No changes to push"
+        echo "Committing version and changelog updates"
+        echo "VERSION=$VERSION"
+        echo "TAG=$TAG"
+        cat pyproject.toml
+        cat CHANGELOG.md
+        # git config --local user.email "action@github.com"
+        # git config --local user.name "GitHub Action"
+        # git add pyproject.toml CHANGELOG.md
+        # git commit -m "Update version to $VERSION and changelog [skip ci]" || echo "No changes to commit"
+        # git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || echo "No changes to push"
