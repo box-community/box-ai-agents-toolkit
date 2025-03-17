@@ -52,7 +52,7 @@ jobs:
     
     - name: Update version in pyproject.toml
       run: |
-        python .github/scripts/update_version.py $VERSION
+        uv run .github/scripts/update_version.py $VERSION
     
     - name: Generate changelog updates
       run: |
@@ -60,7 +60,7 @@ jobs:
     
     - name: Build package
       run: |
-        python -m build
+        uv build
     
     - name: Publish to PyPI
       env:
@@ -69,6 +69,7 @@ jobs:
         echo "Publishing to pypi"
         echo "VERSION=$VERSION"
         echo "TAG=$TAG"
+        echo "uv publish"
         
         # source .venv/bin/activate
         # python -m twine upload --skip-existing --repository pypi dist/* -u __token__ -p $PYPI_API_TOKEN
