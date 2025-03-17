@@ -48,7 +48,12 @@ jobs:
       run: |
         echo "Running tests"
         echo "current path: $(pwd)"
-        # uv run pytest
+        uv run pytest
+      env:
+        CLIENT_ID: ${{ secrets.CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        BOX_SUBJECT_TYPE: ${{ secrets.BOX_SUBJECT_TYPE }}
+        BOX_SUBJECT_ID: ${{ secrets.BOX_SUBJECT_ID }}
     
     - name: Update version in pyproject.toml
       run: |
