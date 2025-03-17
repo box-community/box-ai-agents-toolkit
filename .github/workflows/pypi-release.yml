@@ -36,15 +36,8 @@ jobs:
     
     - name: Create virtual environment and install dependencies
       run: |
-        # Create virtual environment
-        uv venv
-        # Activate virtual environment
-        source .venv/bin/activate
-        # Install dependencies
-        uv pip install ruff pytest toml
-        uv pip install -e .
-        # Install additional dependencies for later steps
-        uv pip install build twine
+        uv sync --all-extras
+        
     
     - name: Run linting
       run: |
