@@ -38,7 +38,11 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = ["pytest>=8.3.5", "ruff>=0.9.10"]
+dev = [
+    "pytest>=8.3.5",
+    "ruff>=0.9.10",
+    "toml>=0.10.2",
+]
 
 # [[tool.uv.index]]
 # name = "testpypi"
