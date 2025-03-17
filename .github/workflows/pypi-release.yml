@@ -25,17 +25,6 @@ jobs:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
     
-    - name: Make scripts executable
-      run: |
-        mkdir -p scripts
-        cat > scripts/update_version.py << 'EOF'
-        ${{ github.workspace }}/.github/scripts/update_version.py
-        EOF
-        cat > scripts/generate_changelog.sh << 'EOF'
-        ${{ github.workspace }}/.github/scripts/generate_changelog.sh
-        EOF
-        chmod +x scripts/update_version.py scripts/generate_changelog.sh
-    
     - name: Extract tag version
       id: get_version
       run: |
@@ -45,41 +34,48 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "TAG=$TAG" >> $GITHUB_ENV
     
-    - name: Install dependencies
+    - name: Create virtual environment and install dependencies
       run: |
+        # Create virtual environment
+        uv venv
+        # Activate virtual environment
+        source .venv/bin/activate
+        # Install dependencies
         uv pip install ruff pytest toml
         uv pip install -e .
+        # Install additional dependencies for later steps
+        uv pip install build twine
     
     - name: Run linting
       run: |
+        source .venv/bin/activate
         uv run ruff check .
     
     - name: Run tests
       run: |
+        source .venv/bin/activate
         uv run pytest
     
     - name: Update version in pyproject.toml
       run: |
-        uv pip install toml
-        python scripts/update_version.py $VERSION
+        source .venv/bin/activate
+        python .github/scripts/update_version.py $VERSION
     
     - name: Generate changelog updates
       run: |
-        bash scripts/generate_changelog.sh $TAG
+        bash .github/scripts/generate_changelog.sh $TAG
     
     - name: Build package
       run: |
-        uv build
-        # uv pip install build
-        # uv run python -m build
+        source .venv/bin/activate
+        python -m build
     
     - name: Publish to PyPI
       env:
         PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
       run: |
-        uv publish
-        # uv pip install twine
-        # uv run python -m twine upload --skip-existing --repository pypi dist/* -u __token__ -p $PYPI_API_TOKEN
+        source .venv/bin/activate
+        python -m twine upload --skip-existing --repository pypi dist/* -u __token__ -p $PYPI_API_TOKEN
     
     - name: Commit version and changelog updates
       run: |
@@ -87,4 +83,4 @@ jobs:
         git config --local user.name "GitHub Action"
         git add pyproject.toml CHANGELOG.md
         git commit -m "Update version to $VERSION and changelog [skip ci]" || echo "No changes to commit"
-        git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${GITHUB_REF#refs/tags/}^{} || echo "No changes to push"
+        git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || echo "No changes to push"
