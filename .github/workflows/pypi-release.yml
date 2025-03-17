@@ -37,21 +37,19 @@ jobs:
     - name: Create virtual environment and install dependencies
       run: |
         uv sync --all-extras
+        uv pip install -e .
         
     
     - name: Run linting
       run: |
-        # source .venv/bin/activate
         uv run ruff check .
     
     - name: Run tests
       run: |
-        # source .venv/bin/activate
         uv run pytest
     
     - name: Update version in pyproject.toml
       run: |
-        # source .venv/bin/activate
         python .github/scripts/update_version.py $VERSION
     
     - name: Generate changelog updates
@@ -60,7 +58,6 @@ jobs:
     
     - name: Build package
       run: |
-        # source .venv/bin/activate
         python -m build
     
     - name: Publish to PyPI
