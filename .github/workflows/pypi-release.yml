@@ -50,8 +50,8 @@ jobs:
         echo "current path: $(pwd)"
         uv run pytest
       env:
-        CLIENT_ID: ${{ secrets.CLIENT_ID }}
-        CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+        CLIENT_ID: ${{ secrets.BOX_CLIENT_ID }}
+        CLIENT_SECRET: ${{ secrets.BOX_CLIENT_SECRET }}
         BOX_SUBJECT_TYPE: ${{ secrets.BOX_SUBJECT_TYPE }}
         BOX_SUBJECT_ID: ${{ secrets.BOX_SUBJECT_ID }}
     
