@@ -80,7 +80,7 @@ jobs:
         echo "Publishing to pypi"
         echo "VERSION=$VERSION"
         echo "TAG=$TAG"
-        uv publish -t $PYPI_API_TOKEN --index pypi
+        uv publish -t $PYPI_API_TOKEN
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
