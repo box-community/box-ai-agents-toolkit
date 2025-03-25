@@ -21,8 +21,12 @@ fi
 
 # Create or update CHANGELOG.md
 if [ -f "CHANGELOG.md" ]; then
-    # Prepend new changes to existing changelog
-    cat CHANGELOG_UPDATES.md <(echo "") <(cat CHANGELOG.md) >CHANGELOG.md.new
+    # Save the title
+    TITLE=$(head -n 2 CHANGELOG.md)
+
+    # Prepend new changes after the title
+    echo "$TITLE" >CHANGELOG.md.new
+    cat CHANGELOG_UPDATES.md <(echo "") <(tail -n +3 CHANGELOG.md) >>CHANGELOG.md.new
     mv CHANGELOG.md.new CHANGELOG.md
 else
     # Create new changelog
