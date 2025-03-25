@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Script to update the version in pyproject.toml from a given version tag.
+This should be replaced by some sort of cli tool
 """
 
 import sys
