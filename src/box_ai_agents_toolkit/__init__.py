@@ -28,6 +28,7 @@ from box_sdk_gen import (
     BoxSDKError,
     File,
     Folder,
+    SearchForContentContentTypes,
 )
 
 __all__ = [
@@ -35,6 +36,7 @@ __all__ = [
     "BoxSDKError",
     "File",
     "Folder",
+    "SearchForContentContentTypes",
     "get_ccg_client",
     "get_oauth_client",
     "authorize_app",
