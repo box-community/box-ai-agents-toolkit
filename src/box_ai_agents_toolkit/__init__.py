@@ -23,7 +23,18 @@ from box_ai_agents_toolkit.box_api import (
     box_claude_ai_agent_extract,
 )
 
+from box_sdk_gen import (
+    BoxClient,
+    BoxSDKError,
+    File,
+    Folder,
+)
+
 __all__ = [
+    "BoxClient",
+    "BoxSDKError",
+    "File",
+    "Folder",
     "get_ccg_client",
     "get_oauth_client",
     "authorize_app",
