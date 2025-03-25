@@ -1,5 +1,8 @@
 # Changelog
+## 0.0.26 - 2025-03-25
 
+* CI/CD script (25e01ee)
+* Update version to 0.0.25 and changelog (37902d0)
 ## 0.0.25 - 2025-03-25
 
 * CI/CD script (7f76549)
