@@ -39,8 +39,3 @@ dev = ["pytest>=8.3.5", "ruff>=0.9.10", "toml>=0.10.2"]
 [project.urls]
 Repository = "https://github.com/box-community/box-ai-agents-toolkit.git"
 Issues = "https://github.com/box-community/box-ai-agents-toolkit/issues"
-
-[[tool.uv.index]]
-name = "pypi"
-url = "https://pypi.org/simple/"
-publish-url = "https://pypi.org/legacy/"
