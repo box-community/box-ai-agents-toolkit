@@ -127,4 +127,5 @@ class ImageFiles(Enum):
 @dataclass
 class BoxFileExtended:
     file: File
-    text_representation: str
+    text_representation: str = None
+    ai_response: dict = None

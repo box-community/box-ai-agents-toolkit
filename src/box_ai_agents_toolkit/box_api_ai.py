@@ -1,5 +1,5 @@
 import json
-from typing import Iterable, List
+from typing import Dict, Iterable
 
 from box_sdk_gen import (
     AiAgentAsk,
@@ -11,7 +11,8 @@ from box_sdk_gen import (
     AiExtractResponse,
     AiItemBase,
     AiItemBaseTypeField,
-    AiSingleAgentResponseFull,
+    AiResponse,
+    AiResponseFull,
     BoxClient,
     CreateAiAskMode,
     CreateAiExtractStructuredFields,
@@ -24,30 +25,28 @@ from src.box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
 
 def box_file_ai_ask(
     client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
-) -> str:
+) -> Dict:
     mode = CreateAiAskMode.SINGLE_ITEM_QA
     ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
-    response = client.ai.create_ai_ask(
+    response: AiResponseFull = client.ai.create_ai_ask(
         mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
     )
-    return response.answer
+    return response.to_dict()
 
 
 def box_file_ai_extract(
     client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
 ) -> dict:
     ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
-    response = client.ai.create_ai_extract(
+    response: AiResponse = client.ai.create_ai_extract(
         prompt=prompt, items=[ai_item], ai_agent=ai_agent
     )
-
-    # Return a dictionary from the json answer
-    return json.loads(response.answer)
+    return response.to_dict()
 
 
 def box_file_ai_extract_structured(
     client: BoxClient, file_id: str, fields_json_str: str
-) -> str:
+) -> Dict:
     ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
     fields_list = json.loads(fields_json_str)
     ai_fields = []
@@ -73,7 +72,7 @@ def box_file_ai_extract_structured(
     response: AiExtractResponse = client.ai.create_ai_extract_structured(
         items=[ai_item], fields=ai_fields
     )
-    return json.dumps(response.to_dict(), indent=2)
+    return response.to_dict()
 
 
 def box_folder_ai_ask(
@@ -88,12 +87,14 @@ def box_folder_ai_ask(
         if item.type == "file":
             file = box_file_get_by_id(client=client, file_id=item.id)
             if not by_pass_text_extraction:
-                text_representation = box_file_ai_ask(
+                ai_response = box_file_ai_ask(
                     client=client, file_id=item.id, prompt=prompt
                 )
             else:
-                text_representation = ""
-            yield BoxFileExtended(file=file, text_representation=text_representation)
+                ai_response = {}
+            yield BoxFileExtended(
+                file=file, text_representation=None, ai_response=ai_response
+            )
         elif item.type == "folder" and is_recursive:
             yield from box_folder_ai_ask(
                 client=client,
@@ -116,12 +117,12 @@ def box_folder_ai_extract(
         if item.type == "file":
             file = box_file_get_by_id(client=client, file_id=item.id)
             if not by_pass_text_extraction:
-                text_representation = box_file_ai_extract(
+                ai_response: Dict = box_file_ai_extract(
                     client=client, file_id=item.id, prompt=prompt
                 )
             else:
-                text_representation = ""
-            yield BoxFileExtended(file=file, text_representation=text_representation)
+                ai_response = {}
+            yield BoxFileExtended(file=file, ai_response=ai_response)
         elif item.type == "folder" and is_recursive:
             yield from box_folder_ai_extract(
                 client=client,
@@ -144,12 +145,12 @@ def box_folder_ai_extract_structured(
         if item.type == "file":
             file = box_file_get_by_id(client=client, file_id=item.id)
             if not by_pass_text_extraction:
-                text_representation = box_file_ai_extract_structured(
+                ai_response: Dict = box_file_ai_extract_structured(
                     client=client, file_id=item.id, fields_json_str=fields_json_str
                 )
             else:
-                text_representation = ""
-            yield BoxFileExtended(file=file, text_representation=text_representation)
+                ai_response = {}
+            yield BoxFileExtended(file=file, ai_response=ai_response)
         elif item.type == "folder" and is_recursive:
             yield from box_folder_ai_extract_structured(
                 client=client,
@@ -158,10 +159,6 @@ def box_folder_ai_extract_structured(
                 is_recursive=is_recursive,
                 by_pass_text_extraction=by_pass_text_extraction,
             )
-
-
-def box_available_ai_agents(client: BoxClient) -> List[AiSingleAgentResponseFull]:
-    return client.ai_studio.get_ai_agents().entries
 
 
 def box_claude_ai_agent_ask() -> AiAgentAsk:

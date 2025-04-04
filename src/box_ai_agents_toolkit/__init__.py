@@ -10,7 +10,6 @@ sdk = ["BoxClient", "BoxSDKError", "File", "Folder", "SearchForContentContentTyp
 
 
 from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
-    box_available_ai_agents,  # noqa: F401
     box_claude_ai_agent_ask,  # noqa: F401
     box_claude_ai_agent_extract,  # noqa: F401
     box_file_ai_ask,  # noqa: F401
@@ -25,7 +24,6 @@ ai = [
     "box_file_ai_ask",
     "box_file_ai_extract",
     "box_file_ai_extract_structured",
-    "box_available_ai_agents",
     "box_claude_ai_agent_ask",
     "box_claude_ai_agent_extract",
     "box_folder_ai_ask",
