@@ -1,5 +1,10 @@
 # Changelog
 ## 0.0.26 - 2025-03-25
+## 0.0.36 - 2025-04-04
+
+* [REFACTOR] exposing util classes (a541cfc)
+* [REFACTOR] exposing util classes (9600346)
+* Update version to 0.0.35 and changelog (35473eb)
 ## 0.0.35 - 2025-04-04
 
 * [REFACTOR] converting box ai responses into agnostic dictionaries (561e36e)
