@@ -1,5 +1,5 @@
 import json
-from typing import Dict, Iterable
+from typing import Dict, Iterable, List
 
 from box_sdk_gen import (
     AiAgentAsk,
@@ -23,6 +23,24 @@ from box_ai_agents_toolkit.box_api_file import box_file_get_by_id
 from box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
 
 
+def box_multi_file_ai_ask(
+    client: BoxClient, file_ids: List[str], prompt: str, ai_agent: AiAgentAsk = None
+) -> Dict:
+    if len(file_ids) == 0:
+        raise ValueError("file_ids cannot be empty")
+    if len(file_ids) > 20:
+        raise ValueError("file_ids cannot be more than 20")
+
+    mode = CreateAiAskMode.MULTIPLE_ITEM_QA
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
+    response: AiResponseFull = client.ai.create_ai_ask(
+        mode=mode, prompt=prompt, items=ai_items, ai_agent=ai_agent
+    )
+    return response.to_dict()
+
+
 def box_file_ai_ask(
     client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
 ) -> Dict:
@@ -34,20 +52,43 @@ def box_file_ai_ask(
     return response.to_dict()
 
 
-def box_file_ai_extract(
-    client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
+def box_multi_file_ai_extract(
+    client: BoxClient, file_ids: List[str], prompt: str, ai_agent: AiAgentAsk = None
 ) -> dict:
-    ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
+    if len(file_ids) == 0:
+        raise ValueError("file_ids cannot be empty")
+    if len(file_ids) > 20:
+        raise ValueError("file_ids cannot be more than 20")
+
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
     response: AiResponse = client.ai.create_ai_extract(
-        prompt=prompt, items=[ai_item], ai_agent=ai_agent
+        prompt=prompt, items=ai_items, ai_agent=ai_agent
     )
     return response.to_dict()
 
 
-def box_file_ai_extract_structured(
-    client: BoxClient, file_id: str, fields_json_str: str
+def box_file_ai_extract(
+    client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
+) -> dict:
+    return box_multi_file_ai_extract(
+        client=client, file_ids=[file_id], prompt=prompt, ai_agent=ai_agent
+    )
+
+
+def box_multi_file_ai_extract_structured(
+    client: BoxClient, file_ids: List[str], fields_json_str: str
 ) -> Dict:
-    ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
+    if len(file_ids) == 0:
+        raise ValueError("file_ids cannot be empty")
+    if len(file_ids) > 20:
+        raise ValueError("file_ids cannot be more than 20")
+
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
+
     fields_list = json.loads(fields_json_str)
     ai_fields = []
     options = []
@@ -70,9 +111,17 @@ def box_file_ai_extract_structured(
             )
         )
     response: AiExtractResponse = client.ai.create_ai_extract_structured(
-        items=[ai_item], fields=ai_fields
+        items=ai_items, fields=ai_fields
     )
     return response.to_dict()
+
+
+def box_file_ai_extract_structured(
+    client: BoxClient, file_id: str, fields_json_str: str
+) -> Dict:
+    return box_multi_file_ai_extract_structured(
+        client=client, file_ids=[file_id], fields_json_str=fields_json_str
+    )
 
 
 def box_folder_ai_ask(
