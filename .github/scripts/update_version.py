@@ -5,6 +5,7 @@ This should be replaced by some sort of cli tool
 """
 
 import sys
+
 import toml
 
 

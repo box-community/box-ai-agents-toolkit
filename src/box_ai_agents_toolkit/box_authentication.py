@@ -1,18 +1,18 @@
-from box_sdk_gen import (
-    BoxClient,
-    CCGConfig,
-    BoxCCGAuth,
-    FileWithInMemoryCacheTokenStorage,
-    OAuthConfig,
-    BoxOAuth,
-    GetAuthorizeUrlOptions,
-)
-from dotenv import load_dotenv
 import os
 import uuid
-from .box_auth_callback import open_browser, callback_handle_request
 
-load_dotenv()
+from box_sdk_gen import (
+    BoxCCGAuth,
+    BoxClient,
+    BoxOAuth,
+    CCGConfig,
+    FileWithInMemoryCacheTokenStorage,
+    GetAuthorizeUrlOptions,
+    OAuthConfig,
+)
+
+from .box_auth_callback import callback_handle_request, open_browser
+
 # Environment variables
 CLIENT_ID = os.getenv("BOX_CLIENT_ID")
 CLIENT_SECRET = os.getenv("BOX_CLIENT_SECRET")

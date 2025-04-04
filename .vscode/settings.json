@@ -3,5 +3,19 @@
         "tests"
     ],
     "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true
+    "python.testing.pytestEnabled": true,
+    "cSpell.words": [
+        "BOXNOTE",
+        "DICM",
+        "DICOM",
+        "dotenv",
+        "gslide",
+        "GSLLIDE",
+        "haml",
+        "INDD",
+        "INDML",
+        "INDT",
+        "WEBDOC",
+        "XLSB"
+    ]
 }
