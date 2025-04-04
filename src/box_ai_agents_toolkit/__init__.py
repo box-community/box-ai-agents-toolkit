@@ -18,6 +18,9 @@ from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
     box_folder_ai_ask,  # noqa: F401
     box_folder_ai_extract,  # noqa: F401
     box_folder_ai_extract_structured,  # noqa: F401
+    box_multi_file_ai_ask,  # noqa: F401
+    box_multi_file_ai_extract,  # noqa: F401
+    box_multi_file_ai_extract_structured,  # noqa: F401
 )
 
 ai = [
@@ -29,6 +32,9 @@ ai = [
     "box_folder_ai_ask",
     "box_folder_ai_extract",
     "box_folder_ai_extract_structured",
+    "box_multi_file_ai_ask",
+    "box_multi_file_ai_extract",
+    "box_multi_file_ai_extract_structured",
 ]
 
 from box_ai_agents_toolkit.box_api_file import (  # noqa: E402
@@ -68,9 +74,9 @@ from box_ai_agents_toolkit.box_api_search import (  # noqa: E402
 search = ["box_search", "box_locate_folder_by_name"]
 
 from box_ai_agents_toolkit.box_api_util_classes import (  # noqa: E402
-    ImageFiles,  # noqa: F401
     BoxFileExtended,  # noqa: F401
     DocumentFiles,  # noqa: F401
+    ImageFiles,  # noqa: F401
 )
 
 util_classes = ["ImageFiles", "BoxFileExtended", "DocumentFiles"]
