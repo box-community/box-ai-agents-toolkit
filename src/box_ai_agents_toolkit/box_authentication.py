@@ -1,6 +1,8 @@
 import os
 import uuid
 
+from dotenv import load_dotenv
+
 from box_sdk_gen import (
     BoxCCGAuth,
     BoxClient,
@@ -15,6 +17,8 @@ from box_ai_agents_toolkit.box_auth_callback import (
     callback_handle_request,
     open_browser,
 )
+
+load_dotenv()
 
 # Environment variables
 CLIENT_ID = os.getenv("BOX_CLIENT_ID")
