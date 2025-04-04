@@ -11,7 +11,10 @@ from box_sdk_gen import (
     OAuthConfig,
 )
 
-from .box_auth_callback import callback_handle_request, open_browser
+from box_ai_agents_toolkit.box_auth_callback import (
+    callback_handle_request,
+    open_browser,
+)
 
 # Environment variables
 CLIENT_ID = os.getenv("BOX_CLIENT_ID")

@@ -19,8 +19,8 @@ from box_sdk_gen import (
     CreateAiExtractStructuredFieldsOptionsField,
 )
 
-from src.box_ai_agents_toolkit.box_api_file import box_file_get_by_id
-from src.box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
+from box_ai_agents_toolkit.box_api_file import box_file_get_by_id
+from box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
 
 
 def box_file_ai_ask(
