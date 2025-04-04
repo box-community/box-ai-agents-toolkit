@@ -67,6 +67,14 @@ from box_ai_agents_toolkit.box_api_search import (  # noqa: E402
 
 search = ["box_search", "box_locate_folder_by_name"]
 
+from box_ai_agents_toolkit.box_api_util_classes import (  # noqa: E402
+    ImageFiles,
+    BoxFileExtended,
+    DocumentFiles,
+)
+
+util_classes = ["ImageFiles", "BoxFileExtended", "DocumentFiles"]
+
 from box_ai_agents_toolkit.box_authentication import (  # noqa: E402
     authorize_app,  # noqa: F401
     get_auth_config,  # noqa: F401
@@ -92,3 +100,4 @@ __all__.extend(file)
 __all__.extend(folder)
 __all__.extend(search)
 __all__.extend(auth)
+__all__.extend(util_classes)
