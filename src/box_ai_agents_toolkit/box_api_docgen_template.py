@@ -6,12 +6,12 @@ from typing import Any, Dict, Optional
 
 from box_sdk_gen import (
     BoxClient,
-    FileReferenceV2025R0,
+    DocGenJobsV2025R0,
+    DocGenTagsV2025R0,
     DocGenTemplateBaseV2025R0,
     DocGenTemplatesV2025R0,
     DocGenTemplateV2025R0,
-    DocGenTagsV2025R0,
-    DocGenJobsV2025R0,
+    FileReferenceV2025R0,
 )
 
 

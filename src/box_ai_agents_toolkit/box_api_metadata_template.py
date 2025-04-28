@@ -5,13 +5,13 @@ See: https://developer.box.com/reference#metadata-templates
 from typing import Any, Dict, List, Optional
 
 from box_sdk_gen import BoxClient
-from box_sdk_gen.schemas.metadata_template import MetadataTemplate
-from box_sdk_gen.schemas.metadata_templates import MetadataTemplates
 from box_sdk_gen.managers.metadata_templates import (
-    GetMetadataTemplateScope,
     DeleteMetadataTemplateScope,
+    GetMetadataTemplateScope,
     UpdateMetadataTemplateScope,
 )
+from box_sdk_gen.schemas.metadata_template import MetadataTemplate
+from box_sdk_gen.schemas.metadata_templates import MetadataTemplates
 
 
 def box_metadata_template_create(

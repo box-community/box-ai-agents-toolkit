@@ -1,14 +1,14 @@
 import pytest
+from box_sdk_gen import FileReferenceV2025R0
 
 from src.box_ai_agents_toolkit.box_api_docgen_template import (
     box_docgen_template_create,
-    box_docgen_template_list,
     box_docgen_template_delete,
     box_docgen_template_get_by_id,
-    box_docgen_template_list_tags,
+    box_docgen_template_list,
     box_docgen_template_list_jobs,
+    box_docgen_template_list_tags,
 )
-from box_sdk_gen import FileReferenceV2025R0
 
 
 class DummyDocgenTemplateManager:

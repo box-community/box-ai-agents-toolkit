@@ -6,13 +6,13 @@ from typing import Any, Dict, List, Optional, Union
 
 from box_sdk_gen import (
     BoxClient,
-    FileReferenceV2025R0,
     CreateDocgenBatchV2025R0DestinationFolder,
+    DocGenBatchBaseV2025R0,
     DocGenDocumentGenerationDataV2025R0,
-    DocGenJobV2025R0,
     DocGenJobsFullV2025R0,
     DocGenJobsV2025R0,
-    DocGenBatchBaseV2025R0,
+    DocGenJobV2025R0,
+    FileReferenceV2025R0,
 )
 
 
@@ -148,7 +148,8 @@ def box_docgen_create_batch_from_user_input(
     Returns:
         DocGenBatchBaseV2025R0: Information about the created batch job.
     """
-    import json, re
+    import json
+    import re
 
     # Default generated file name
     gen_name = generated_file_name or "DocGen Output"

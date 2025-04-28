@@ -1,8 +1,6 @@
 import os
 import uuid
 
-from dotenv import load_dotenv
-
 from box_sdk_gen import (
     BoxCCGAuth,
     BoxClient,
@@ -12,6 +10,7 @@ from box_sdk_gen import (
     GetAuthorizeUrlOptions,
     OAuthConfig,
 )
+from dotenv import load_dotenv
 
 from box_ai_agents_toolkit.box_auth_callback import (
     callback_handle_request,

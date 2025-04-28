@@ -1,18 +1,18 @@
 import pytest
+from box_sdk_gen.managers.metadata_templates import (
+    DeleteMetadataTemplateScope,
+    GetMetadataTemplateScope,
+    UpdateMetadataTemplateScope,
+)
 
 from src.box_ai_agents_toolkit.box_api_metadata_template import (
     box_metadata_template_create,
-    box_metadata_template_list,
+    box_metadata_template_delete,
     box_metadata_template_get,
     box_metadata_template_get_by_id,
-    box_metadata_template_update,
-    box_metadata_template_delete,
+    box_metadata_template_list,
     box_metadata_template_list_by_instance_id,
-)
-from box_sdk_gen.managers.metadata_templates import (
-    GetMetadataTemplateScope,
-    DeleteMetadataTemplateScope,
-    UpdateMetadataTemplateScope,
+    box_metadata_template_update,
 )
 
 
