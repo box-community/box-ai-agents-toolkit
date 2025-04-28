@@ -9,6 +9,7 @@ from box_sdk_gen import (
     AiAgentExtractTypeField,
     AiAgentLongTextTool,
     AiExtractResponse,
+    AiItemAskTypeField,
     AiItemBase,
     AiItemBaseTypeField,
     AiResponse,
@@ -55,7 +56,7 @@ def box_hubs_ai_ask(
     client: BoxClient, hubs_id: str, prompt: str, ai_agent: AiAgentAsk = None
 ) -> Dict:
     mode = CreateAiAskMode.SINGLE_ITEM_QA
-    ai_item = AiItemBase(id=hubs_id, type=AiItemBaseTypeField.HUBS)
+    ai_item = AiItemBase(id=hubs_id, type=AiItemAskTypeField.HUBS)
     response: AiResponseFull = client.ai.create_ai_ask(
         mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
     )
