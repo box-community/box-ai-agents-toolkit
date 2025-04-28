@@ -1,5 +1,8 @@
 # Changelog
 ## 0.0.26 - 2025-03-25
+## 0.0.41 - 2025-04-28
+
+* linting (06b37f9)
 ## 0.0.38 - 2025-04-04
 
 * [BUG] re-introducing load_doten() to the box authentication (114e0ca)
