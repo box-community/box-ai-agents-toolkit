@@ -1,9 +1,10 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 
 [[package]]
 name = "box-ai-agents-toolkit"
-version = "0.0.36"
+version = "0.0.38"
 source = { editable = "." }
 dependencies = [
     { name = "box-sdk-gen" },

@@ -9,6 +9,7 @@ from box_sdk_gen import (
     AiAgentExtractTypeField,
     AiAgentLongTextTool,
     AiExtractResponse,
+    AiItemAskTypeField,
     AiItemBase,
     AiItemBaseTypeField,
     AiResponse,
@@ -51,6 +52,15 @@ def box_file_ai_ask(
     )
     return response.to_dict()
 
+def box_hubs_ai_ask(
+    client: BoxClient, hubs_id: str, prompt: str, ai_agent: AiAgentAsk = None
+) -> Dict:
+    mode = CreateAiAskMode.SINGLE_ITEM_QA
+    ai_item = AiItemBase(id=hubs_id, type=AiItemAskTypeField.HUBS)
+    response: AiResponseFull = client.ai.create_ai_ask(
+        mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
+    )
+    return response.to_dict()
 
 def box_multi_file_ai_extract(
     client: BoxClient, file_ids: List[str], prompt: str, ai_agent: AiAgentAsk = None
