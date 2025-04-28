@@ -2,7 +2,8 @@
 Wrapper functions for Box Doc Gen Template APIs.
 See: https://developer.box.com/reference/v2025.0/
 """
-from typing import Any, Dict, Optional
+
+from typing import Optional
 
 from box_sdk_gen import (
     BoxClient,
@@ -59,7 +60,7 @@ def box_docgen_template_delete(
     template_id: str,
 ) -> None:
     """
-    Unmark a file as a Box Doc Gen template.
+    Un mark a file as a Box Doc Gen template.
 
     Args:
         client (BoxClient): Authenticated Box client.

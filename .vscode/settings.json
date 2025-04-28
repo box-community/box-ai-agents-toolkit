@@ -8,6 +8,7 @@
         "BOXNOTE",
         "DICM",
         "DICOM",
+        "docgen",
         "dotenv",
         "gslide",
         "GSLLIDE",
