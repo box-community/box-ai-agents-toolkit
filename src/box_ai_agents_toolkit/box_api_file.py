@@ -2,7 +2,7 @@ import logging
 import mimetypes
 import os
 import tempfile
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, Union
 
 from box_sdk_gen import (
     BoxClient,
@@ -11,7 +11,7 @@ from box_sdk_gen import (
     UploadFileAttributesParentField,
 )
 
-from box_ai_agents_toolkit.box_api_util_http import _do_request
+from .box_api_util_http import _do_request
 
 logger = logging.basicConfig(level=logging.DEBUG)
 
@@ -128,7 +128,10 @@ def box_file_download(
 
 
 def box_upload_file(
-    client: BoxClient, content: str, file_name: str, folder_id: Optional[Any] = None
+    client: BoxClient,
+    content: Union[str, bytes],
+    file_name: str,
+    folder_id: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """
     Uploads content as a file to Box.
@@ -146,8 +149,11 @@ def box_upload_file(
     Raises:
         BoxSDKError: If an error occurs during file upload
     """
-    # Create a temporary file
-    with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+    # Create a temporary file; choose write mode based on content type
+    is_bytes = isinstance(content, (bytes, bytearray))
+    mode = "wb" if is_bytes else "w"
+    with tempfile.NamedTemporaryFile(mode=mode, delete=False) as temp_file:
+        # Write bytes or text
         temp_file.write(content)
         temp_file_path = temp_file.name
 

@@ -99,6 +99,55 @@ auth = [
     "authorize_app",
 ]
 
+from .box_api_docgen import (  # noqa: E402
+    box_docgen_get_job_by_id,       # noqa: F401
+    box_docgen_list_jobs,           # noqa: F401
+    box_docgen_list_jobs_by_batch,  # noqa: F401
+    box_docgen_create_batch,        # noqa: F401
+    box_docgen_create_batch_from_user_input,  # noqa: F401
+)
+docgen = [
+    "box_docgen_get_job_by_id",
+    "box_docgen_list_jobs",
+    "box_docgen_list_jobs_by_batch",
+    "box_docgen_create_batch",
+    "box_docgen_create_batch_from_user_input",
+]
+from .box_api_docgen_template import (  # noqa: E402
+    box_docgen_template_create,  # noqa: F401
+    box_docgen_template_list,  # noqa: F401
+    box_docgen_template_delete,  # noqa: F401
+    box_docgen_template_get_by_id,  # noqa: F401
+    box_docgen_template_list_tags,  # noqa: F401
+    box_docgen_template_list_jobs,  # noqa: F401
+)
+docgen_template = [
+    "box_docgen_template_create",
+    "box_docgen_template_list",
+    "box_docgen_template_delete",
+    "box_docgen_template_get_by_id",
+    "box_docgen_template_list_tags",
+    "box_docgen_template_list_jobs",
+]
+from .box_api_metadata_template import (  # noqa: E402
+    box_metadata_template_create,  # noqa: F401
+    box_metadata_template_list,    # noqa: F401
+    box_metadata_template_get,     # noqa: F401
+    box_metadata_template_get_by_id,  # noqa: F401
+    box_metadata_template_update,  # noqa: F401
+    box_metadata_template_delete,  # noqa: F401
+    box_metadata_template_list_by_instance_id,  # noqa: F401
+)
+metadata_template = [
+    "box_metadata_template_create",
+    "box_metadata_template_list",
+    "box_metadata_template_get",
+    "box_metadata_template_get_by_id",
+    "box_metadata_template_update",
+    "box_metadata_template_delete",
+    "box_metadata_template_list_by_instance_id",
+]
+
 
 __all__ = []
 
