@@ -79,6 +79,14 @@ from box_ai_agents_toolkit import box_file_ai_ask
 response = box_file_ai_ask(client, file_id="12345", prompt="What is this file about?")
 ```
 
+#### Ask AI a Question about a Box Hub
+
+```python
+from box_ai_agents_toolkit import box_hubs_ai_ask
+
+response = box_hubs_ai_ask(client, hubs_id="12345", prompt="What is the current policy on parental leave?")
+```
+
 #### Extract Information from a File using AI
 
 ```python
