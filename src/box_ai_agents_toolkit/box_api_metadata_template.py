@@ -5,7 +5,7 @@ See: https://developer.box.com/reference#metadata-templates
 
 from typing import Any, Dict, List, Optional
 
-from box_sdk_gen import BoxClient, Metadata, BoxAPIError
+from box_sdk_gen import BoxAPIError, BoxClient
 from box_sdk_gen.managers.metadata_templates import (
     UpdateMetadataTemplateScope,
 )
@@ -132,11 +132,16 @@ def box_metadata_template_get_by_key(
 def box_metadata_template_get_by_id(
     client: BoxClient,
     template_id: str,
-) -> MetadataTemplate:
+) -> Dict[str, Any]:
     """
     Retrieve a metadata template definition by its unique ID.
     """
-    return client.metadata_templates.get_metadata_template_by_id(template_id)
+    try:
+        return client.metadata_templates.get_metadata_template_by_id(
+            template_id
+        ).to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
 def box_metadata_template_get_by_name(
@@ -165,7 +170,7 @@ def box_metadata_set_instance_on_file(
     template_key: str,
     file_id: str,
     metadata: Dict[str, Any],
-) -> Metadata:
+) -> Dict[str, Any]:
     """
     Set a metadata template instance on a specific file.
 
@@ -178,21 +183,25 @@ def box_metadata_set_instance_on_file(
         {'test_field': 'Test Value', 'date_field': '2023-10-01T00:00:00.000Z', 'float_field': 3.14, 'enum_field': 'option1', 'multiselect_field': ['option1', 'option2']}
 
     Returns:
-        Metadata: The created metadata instance on the file.
+        Dict[str, Any]: The created metadata instance on the file.
     """
-    return client.file_metadata.create_file_metadata_by_id(
-        file_id=file_id,
-        scope="enterprise",
-        template_key=template_key,
-        request_body=metadata,
-    )
+    try:
+        resp = client.file_metadata.create_file_metadata_by_id(
+            file_id=file_id,
+            scope="enterprise",
+            template_key=template_key,
+            request_body=metadata,
+        )
+        return resp.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
 def box_metadata_get_instance_on_file(
     client: BoxClient,
     file_id: str,
     template_key: str,
-) -> Optional[Metadata]:
+) -> Dict[str, Any]:
     """
     Get the metadata template instance associated with a specific file.
 
@@ -202,9 +211,12 @@ def box_metadata_get_instance_on_file(
         template_key (str): The key of the metadata template to retrieve.
 
     Returns:
-        Optional[MetadataTemplate]: The metadata template instance or None if not found.
+        Dict[str, Any]: The metadata template instance or None if not found.
     """
-    metadata = client.file_metadata.get_file_metadata_by_id(
-        file_id=file_id, scope="enterprise", template_key=template_key
-    )
-    return metadata
+    try:
+        resp = client.file_metadata.get_file_metadata_by_id(
+            file_id=file_id, scope="enterprise", template_key=template_key
+        )
+        return resp.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}

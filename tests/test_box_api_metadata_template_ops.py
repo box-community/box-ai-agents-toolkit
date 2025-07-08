@@ -1,17 +1,19 @@
-from typing import Any, Dict
-import pytest
 import datetime
+from typing import Any, Dict
+
+import pytest
+
 from src.box_ai_agents_toolkit.box_api_metadata_template import (
     BoxClient,
     MetadataTemplate,
     MetadataTemplates,
     _box_metadata_template_create,
     _box_metadata_template_delete,
-    box_metadata_template_get_by_name,
-    box_metadata_template_get_by_key,
-    box_metadata_set_instance_on_file,
-    box_metadata_get_instance_on_file,
     _box_metadata_template_list,
+    box_metadata_get_instance_on_file,
+    box_metadata_set_instance_on_file,
+    box_metadata_template_get_by_key,
+    box_metadata_template_get_by_name,
 )
 
 
@@ -175,10 +177,10 @@ def test_box_metadata_set_get_instance_on_file(
     )
 
     assert response is not None
-    details = response.to_dict()
-    assert details["$parent"] == f"file_{file_id}"
-    assert details["$template"] == created_template.template_key
-    extra_data = details.get("extra_data", {})
+    assert isinstance(response, dict)
+    assert response["$parent"] == f"file_{file_id}"
+    assert response["$template"] == created_template.template_key
+    extra_data = response.get("extra_data", {})
     assert extra_data.get("test_field") == metadata["test_field"]
     assert extra_data.get("date_field") == metadata["date_field"]
     assert extra_data.get("float_field") == metadata["float_field"]
@@ -189,10 +191,10 @@ def test_box_metadata_set_get_instance_on_file(
         box_client_ccg, file_id=file_id, template_key=created_template.template_key
     )
     assert response_get is not None
-    details_get = response_get.to_dict()
-    assert details_get["$parent"] == f"file_{file_id}"
-    assert details_get["$template"] == created_template.template_key
-    extra_data_get = details_get.get("extra_data", {})
+    assert isinstance(response_get, dict)
+    assert response_get["$parent"] == f"file_{file_id}"
+    assert response_get["$template"] == created_template.template_key
+    extra_data_get = response_get.get("extra_data", {})
     assert extra_data_get.get("test_field") == metadata["test_field"]
     assert extra_data_get.get("date_field") == metadata["date_field"]
     assert extra_data_get.get("float_field") == metadata["float_field"]
