@@ -124,6 +124,23 @@ def test_box_metadata_find_template_by_name(
     assert response.get("templateKey") is not None
     assert response.get("id") is not None
 
+    # test finding a non-existent template
+    response_non_existent = box_metadata_template_get_by_name(
+        box_client_ccg, display_name="Non Existent Template"
+    )
+    assert response_non_existent is not None
+    assert isinstance(response_non_existent, dict)
+    assert response_non_existent.get("message") == "Template not found"
+
+    # Test with an existing template but different case
+    response_case_insensitive = box_metadata_template_get_by_name(
+        box_client_ccg, display_name=created_template.display_name.upper()
+    )
+    assert response_case_insensitive is not None
+    assert response_case_insensitive.get("displayName") == created_template.display_name
+    assert response_case_insensitive.get("templateKey") == created_template.template_key
+    assert response_case_insensitive.get("id") == created_template.id
+
 
 def test_box_metadata_template_get_by_key(
     box_client_ccg: BoxClient, created_template: MetadataTemplate

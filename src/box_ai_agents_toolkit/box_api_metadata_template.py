@@ -160,7 +160,7 @@ def box_metadata_template_get_by_name(
     """
     templates = _box_metadata_template_list(client)
     for template in templates.entries:
-        if template.display_name == display_name:
+        if template.display_name.lower() == display_name.lower():
             return template.to_dict()
     return {"message": "Template not found"}
 
