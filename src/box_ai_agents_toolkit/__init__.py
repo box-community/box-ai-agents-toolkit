@@ -132,23 +132,19 @@ docgen_template = [
     "box_docgen_template_list_jobs",
 ]
 from .box_api_metadata_template import (  # noqa: E402
-    box_metadata_template_create,  # noqa: F401
-    box_metadata_template_delete,  # noqa: F401
-    box_metadata_template_get,  # noqa: F401
+    box_metadata_template_get_by_key,  # noqa: F401
     box_metadata_template_get_by_id,  # noqa: F401
-    box_metadata_template_list,  # noqa: F401
-    box_metadata_template_list_by_instance_id,  # noqa: F401
-    box_metadata_template_update,  # noqa: F401
+    box_metadata_template_get_by_name,  # noqa: F401
+    box_metadata_set_instance_on_file,  # noqa: F401
+    box_metadata_get_instance_on_file,  # noqa: F401
 )
 
 metadata_template = [
-    "box_metadata_template_create",
-    "box_metadata_template_list",
-    "box_metadata_template_get",
+    "box_metadata_template_get_by_key",
     "box_metadata_template_get_by_id",
-    "box_metadata_template_update",
-    "box_metadata_template_delete",
-    "box_metadata_template_list_by_instance_id",
+    "box_metadata_template_get_by_name",
+    "box_metadata_set_instance_on_file",
+    "box_metadata_get_instance_on_file",
 ]
 
 
@@ -164,3 +160,6 @@ __all__.extend(docgen)
 __all__.extend(docgen_template)
 __all__.extend(metadata_template)
 __all__.extend(util_classes)
+__all__.extend(docgen)
+__all__.extend(docgen_template)
+__all__.extend(metadata_template)

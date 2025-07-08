@@ -2,56 +2,57 @@
 Wrapper functions for Box Metadata Templates APIs.
 See: https://developer.box.com/reference#metadata-templates
 """
+
 from typing import Any, Dict, List, Optional
 
-from box_sdk_gen import BoxClient
+from box_sdk_gen import BoxClient, Metadata
 from box_sdk_gen.managers.metadata_templates import (
-    DeleteMetadataTemplateScope,
-    GetMetadataTemplateScope,
     UpdateMetadataTemplateScope,
 )
 from box_sdk_gen.schemas.metadata_template import MetadataTemplate
-from box_sdk_gen.schemas.metadata_templates import MetadataTemplates
+from box_sdk_gen.schemas.metadata_templates import (
+    MetadataTemplates,
+)
 
 
-def box_metadata_template_create(
+def _box_metadata_template_create(
     client: BoxClient,
-    scope: str,
+    # scope: str,
     display_name: str,
     *,
     template_key: Optional[str] = None,
-    hidden: Optional[bool] = None,
+    # hidden: Optional[bool] = False,
     fields: Optional[List[Dict[str, Any]]] = None,
-    copy_instance_on_item_copy: Optional[bool] = None,
+    # copy_instance_on_item_copy: Optional[bool] = False,
 ) -> MetadataTemplate:
     """
     Create a new metadata template definition in Box.
 
     Args:
         client (BoxClient): An authenticated Box client.
-        scope (str): The scope of the template ("enterprise" or "global").
+        # scope (str): The scope of the template ("enterprise" or "global").
         display_name (str): Human-readable name for the template.
         template_key (str, optional): Key to identify the template.
-        hidden (bool, optional): Whether the template is hidden.
+        # hidden (bool, optional): Whether the template is hidden.
         fields (List[Dict], optional): List of field definitions.
-        copy_instance_on_item_copy (bool, optional): Cascade policy for instances.
+        # copy_instance_on_item_copy (bool, optional): Cascade policy for instances.
 
     Returns:
         MetadataTemplate: The created metadata template definition.
     """
+    scope = "enterprise"  # Default scope, can be changed as needed
     return client.metadata_templates.create_metadata_template(
         scope=scope,
         display_name=display_name,
         template_key=template_key,
-        hidden=hidden,
+        hidden=False,
         fields=fields,
-        copy_instance_on_item_copy=copy_instance_on_item_copy,
+        copy_instance_on_item_copy=False,
     )
 
 
-def box_metadata_template_list(
+def _box_metadata_template_list(
     client: BoxClient,
-    scope: str,
     marker: Optional[str] = None,
     limit: Optional[int] = None,
 ) -> MetadataTemplates:
@@ -67,40 +68,12 @@ def box_metadata_template_list(
     Returns:
         MetadataTemplates: A page of metadata template entries.
     """
-    scope_lower = scope.lower()
-    if scope_lower == GetMetadataTemplateScope.ENTERPRISE.value:
-        return client.metadata_templates.get_enterprise_metadata_templates(
-            marker=marker, limit=limit
-        )
-    if scope_lower == GetMetadataTemplateScope.GLOBAL.value:
-        return client.metadata_templates.get_global_metadata_templates(
-            marker=marker, limit=limit
-        )
-    raise ValueError(f"Invalid scope '{scope}'. Must be 'enterprise' or 'global'.")
+    return client.metadata_templates.get_enterprise_metadata_templates(
+        marker=marker, limit=limit
+    )
 
 
-def box_metadata_template_get(
-    client: BoxClient,
-    scope: GetMetadataTemplateScope,
-    template_key: str,
-) -> MetadataTemplate:
-    """
-    Retrieve a metadata template definition by scope and key.
-    """
-    return client.metadata_templates.get_metadata_template(scope, template_key)
-
-
-def box_metadata_template_get_by_id(
-    client: BoxClient,
-    template_id: str,
-) -> MetadataTemplate:
-    """
-    Retrieve a metadata template definition by its unique ID.
-    """
-    return client.metadata_templates.get_metadata_template_by_id(template_id)
-
-
-def box_metadata_template_update(
+def _box_metadata_template_update(
     client: BoxClient,
     scope: UpdateMetadataTemplateScope,
     template_key: str,
@@ -114,18 +87,20 @@ def box_metadata_template_update(
     )
 
 
-def box_metadata_template_delete(
+def _box_metadata_template_delete(
     client: BoxClient,
-    scope: DeleteMetadataTemplateScope,
     template_key: str,
 ) -> None:
     """
     Delete a metadata template definition.
     """
-    client.metadata_templates.delete_metadata_template(scope, template_key)
+    scope = "enterprise"  # Default scope, can be changed as needed
+    client.metadata_templates.delete_metadata_template(
+        scope=scope, template_key=template_key
+    )
 
 
-def box_metadata_template_list_by_instance_id(
+def _box_metadata_template_list_by_instance_id(
     client: BoxClient,
     metadata_instance_id: str,
     marker: Optional[str] = None,
@@ -137,3 +112,96 @@ def box_metadata_template_list_by_instance_id(
     return client.metadata_templates.get_metadata_templates_by_instance_id(
         metadata_instance_id, marker=marker, limit=limit
     )
+
+
+def box_metadata_template_get_by_key(
+    client: BoxClient,
+    template_key: str,
+) -> MetadataTemplate:
+    """
+    Retrieve a metadata template definition by scope and key.
+    """
+    return client.metadata_templates.get_metadata_template(
+        scope="enterprise", template_key=template_key
+    )
+
+
+def box_metadata_template_get_by_id(
+    client: BoxClient,
+    template_id: str,
+) -> MetadataTemplate:
+    """
+    Retrieve a metadata template definition by its unique ID.
+    """
+    return client.metadata_templates.get_metadata_template_by_id(template_id)
+
+
+def box_metadata_template_get_by_name(
+    client: BoxClient,
+    display_name: str,
+) -> Optional[MetadataTemplate]:
+    """
+    Find a metadata template by its display name within a given scope.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        display_name (str): The display name of the template to search for.
+
+    Returns:
+        Optional[MetadataTemplate]: The found metadata template or None if not found.
+    """
+    templates = _box_metadata_template_list(client)
+    for template in templates.entries:
+        if template.display_name == display_name:
+            return template
+    return None
+
+
+def box_metadata_set_instance_on_file(
+    client: BoxClient,
+    template_key: str,
+    file_id: str,
+    metadata: Dict[str, Any],
+) -> Metadata:
+    """
+    Set a metadata template instance on a specific file.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        template_key (str): The key of the metadata template to set.
+        file_id (str): The ID of the file to set the metadata on.
+        metadata (Dict[str, Any]): The metadata instance to set, as a dictionary.
+        Metadata example:
+        {'test_field': 'Test Value', 'date_field': '2023-10-01T00:00:00.000Z', 'float_field': 3.14, 'enum_field': 'option1', 'multiselect_field': ['option1', 'option2']}
+
+    Returns:
+        Metadata: The created metadata instance on the file.
+    """
+    return client.file_metadata.create_file_metadata_by_id(
+        file_id=file_id,
+        scope="enterprise",
+        template_key=template_key,
+        request_body=metadata,
+    )
+
+
+def box_metadata_get_instance_on_file(
+    client: BoxClient,
+    file_id: str,
+    template_key: str,
+) -> Optional[Metadata]:
+    """
+    Get the metadata template instance associated with a specific file.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to check.
+        template_key (str): The key of the metadata template to retrieve.
+
+    Returns:
+        Optional[MetadataTemplate]: The metadata template instance or None if not found.
+    """
+    metadata = client.file_metadata.get_file_metadata_by_id(
+        file_id=file_id, scope="enterprise", template_key=template_key
+    )
+    return metadata

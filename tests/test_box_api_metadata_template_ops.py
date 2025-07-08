@@ -1,157 +1,192 @@
+from typing import Any, Dict
 import pytest
-from box_sdk_gen.managers.metadata_templates import (
-    DeleteMetadataTemplateScope,
-    GetMetadataTemplateScope,
-    UpdateMetadataTemplateScope,
-)
-
+import datetime
 from src.box_ai_agents_toolkit.box_api_metadata_template import (
-    box_metadata_template_create,
-    box_metadata_template_delete,
-    box_metadata_template_get,
+    BoxClient,
+    MetadataTemplate,
+    MetadataTemplates,
+    _box_metadata_template_create,
+    _box_metadata_template_delete,
+    box_metadata_template_get_by_name,
+    box_metadata_set_instance_on_file,
+    box_metadata_get_instance_on_file,
+    box_metadata_template_get_by_key,
     box_metadata_template_get_by_id,
-    box_metadata_template_list,
-    box_metadata_template_list_by_instance_id,
-    box_metadata_template_update,
+    _box_metadata_template_list,
+    _box_metadata_template_list_by_instance_id,
+    _box_metadata_template_update,
 )
-
-
-class DummyMetadataTemplatesManager:
-    def __init__(self):
-        self.calls = []
-
-    def create_metadata_template(
-        self,
-        scope,
-        display_name,
-        *,
-        template_key=None,
-        hidden=None,
-        fields=None,
-        copy_instance_on_item_copy=None,
-    ):
-        self.calls.append(
-            (
-                'create',
-                scope,
-                display_name,
-                template_key,
-                hidden,
-                fields,
-                copy_instance_on_item_copy,
-            )
-        )
-        return {'scope': scope, 'display_name': display_name}
-
-    def get_enterprise_metadata_templates(self, marker=None, limit=None):
-        self.calls.append(('list_enterprise', marker, limit))
-        return {'marker': marker, 'limit': limit}
-
-    def get_global_metadata_templates(self, marker=None, limit=None):
-        self.calls.append(('list_global', marker, limit))
-        return {'marker': marker, 'limit': limit}
-
-    def get_metadata_template(self, scope, template_key):
-        self.calls.append(('get', scope, template_key))
-        return {'scope': scope, 'template_key': template_key}
-
-    def get_metadata_template_by_id(self, template_id):
-        self.calls.append(('get_by_id', template_id))
-        return {'template_id': template_id}
-
-    def update_metadata_template(self, scope, template_key, request_body):
-        self.calls.append(('update', scope, template_key, request_body))
-        return {'scope': scope, 'template_key': template_key, 'request_body': request_body}
-
-    def delete_metadata_template(self, scope, template_key):
-        self.calls.append(('delete', scope, template_key))
-        return None
-
-    def get_metadata_templates_by_instance_id(self, metadata_instance_id, marker=None, limit=None):
-        self.calls.append(('list_by_instance', metadata_instance_id, marker, limit))
-        return {'metadata_instance_id': metadata_instance_id, 'marker': marker, 'limit': limit}
-
-
-class DummyClient:
-    def __init__(self):
-        self.metadata_templates = DummyMetadataTemplatesManager()
 
 
 @pytest.fixture
-def dummy_client():
-    return DummyClient()
+def template_name():
+    """Generate a unique template name for testing."""
+    return f"Pytest Template {datetime.datetime.now().isoformat()}"
 
 
-def test_box_metadata_template_create(dummy_client):
-    result = box_metadata_template_create(
-        dummy_client,
-        'enterprise',
-        'My Template',
-        template_key='tmpl1',
-        hidden=True,
-        fields=[{'key': 'a'}],
-        copy_instance_on_item_copy=False,
+@pytest.fixture
+def created_template(box_client_ccg: BoxClient, template_name: str):
+    """Create a metadata template for testing and clean up afterward."""
+    fields = []
+
+    field_text = {
+        "type": "string",
+        "displayName": "Test Field",
+        "key": "test_field",
+    }
+    fields.append(field_text)
+
+    field_date = {
+        "type": "date",
+        "displayName": "Date Field",
+        "key": "date_field",
+    }
+    fields.append(field_date)
+
+    field_float = {
+        "type": "float",
+        "displayName": "Float Field",
+        "key": "float_field",
+    }
+    fields.append(field_float)
+
+    field_enum = {
+        "type": "enum",
+        "displayName": "Enum Field",
+        "key": "enum_field",
+        "options": [
+            {"key": "option1"},
+            {"key": "option2"},
+        ],
+    }
+    fields.append(field_enum)
+
+    field_multiselect = {
+        "type": "multiSelect",
+        "displayName": "Multiselect Field",
+        "key": "multiselect_field",
+        "options": [
+            {"key": "option1"},
+            {"key": "option2"},
+        ],
+    }
+    fields.append(field_multiselect)
+
+    template = _box_metadata_template_create(
+        box_client_ccg, display_name=template_name, fields=fields
     )
-    assert result == {'scope': 'enterprise', 'display_name': 'My Template'}
-    assert dummy_client.metadata_templates.calls == [
-        (
-            'create',
-            'enterprise',
-            'My Template',
-            'tmpl1',
-            True,
-            [{'key': 'a'}],
-            False,
+
+    yield template
+    # Cleanup
+    try:
+        _box_metadata_template_delete(
+            box_client_ccg, template_key=template.template_key
         )
-    ]
+    except Exception:
+        pass  # Template might already be deleted
 
 
-def test_box_metadata_template_list_enterprise(dummy_client):
-    result = box_metadata_template_list(dummy_client, 'enterprise', marker='m', limit=2)
-    assert result == {'marker': 'm', 'limit': 2}
-    assert dummy_client.metadata_templates.calls == [('list_enterprise', 'm', 2)]
+# @pytest.fixture
+def get_metadata() -> Dict[str, Any]:
+    """Generate a sample metadata instance for testing."""
+    date = datetime.datetime(2023, 10, 1)
+    formatted_datetime = date.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    return {
+        "test_field": "Test Value",
+        "date_field": formatted_datetime,
+        "float_field": 3.14,
+        "enum_field": "option1",
+        "multiselect_field": ["option1", "option2"],
+    }
 
 
-def test_box_metadata_template_list_global(dummy_client):
-    result = box_metadata_template_list(dummy_client, 'global', marker='x', limit=1)
-    assert result == {'marker': 'x', 'limit': 1}
-    assert dummy_client.metadata_templates.calls == [('list_global', 'x', 1)]
+def test_box_metadata_template_create(box_client_ccg: BoxClient, template_name: str):
+    """Test creating a metadata template."""
+
+    response: MetadataTemplate = _box_metadata_template_create(
+        box_client_ccg, display_name=template_name
+    )
+    assert response.display_name == template_name
+    assert response.template_key is not None
+    assert response.id is not None
+    _box_metadata_template_delete(box_client_ccg, template_key=response.template_key)
 
 
-def test_box_metadata_template_list_invalid_scope(dummy_client):
-    with pytest.raises(ValueError):
-        box_metadata_template_list(dummy_client, 'invalid')
+def test_box_metadata_find_template_by_name(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test finding a metadata template by display name."""
+    response: MetadataTemplate = box_metadata_template_get_by_name(
+        box_client_ccg, display_name=created_template.display_name
+    )
+    assert response is not None
+    assert response.display_name == created_template.display_name
+    assert response.template_key is not None
+    assert response.id is not None
 
 
-def test_box_metadata_template_get(dummy_client):
-    scope = GetMetadataTemplateScope.ENTERPRISE
-    result = box_metadata_template_get(dummy_client, scope, 'tmpl5')
-    assert result == {'scope': scope, 'template_key': 'tmpl5'}
-    assert dummy_client.metadata_templates.calls == [('get', scope, 'tmpl5')]
+def test_box_metadata_template_list(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test listing metadata templates."""
+    response: MetadataTemplates = _box_metadata_template_list(box_client_ccg)
+    assert response is not None
+    assert len(response.entries) > 0
+    # Check it the template created shows up on the list
+    assert any(
+        template.template_key == created_template.template_key
+        for template in response.entries
+    )
 
 
-def test_box_metadata_template_get_by_id(dummy_client):
-    result = box_metadata_template_get_by_id(dummy_client, 'id123')
-    assert result == {'template_id': 'id123'}
-    assert dummy_client.metadata_templates.calls == [('get_by_id', 'id123')]
+def test_box_metadata_set_get_instance_on_file(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test setting a metadata template instance on a file."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    metadata = get_metadata()
+
+    # Set metadata on the file
+    response = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, metadata
+    )
+
+    assert response is not None
+    details = response.to_dict()
+    assert details["$parent"] == f"file_{file_id}"
+    assert details["$template"] == created_template.template_key
+    extra_data = details.get("extra_data", {})
+    assert extra_data.get("test_field") == metadata["test_field"]
+    assert extra_data.get("date_field") == metadata["date_field"]
+    assert extra_data.get("float_field") == metadata["float_field"]
+    assert extra_data.get("enum_field") == metadata["enum_field"]
+    assert extra_data.get("multiselect_field") == metadata["multiselect_field"]
+
+    response_get = box_metadata_get_instance_on_file(
+        box_client_ccg, file_id=file_id, template_key=created_template.template_key
+    )
+    assert response_get is not None
+    details_get = response_get.to_dict()
+    assert details_get["$parent"] == f"file_{file_id}"
+    assert details_get["$template"] == created_template.template_key
+    extra_data_get = details_get.get("extra_data", {})
+    assert extra_data_get.get("test_field") == metadata["test_field"]
+    assert extra_data_get.get("date_field") == metadata["date_field"]
+    assert extra_data_get.get("float_field") == metadata["float_field"]
+    assert extra_data_get.get("enum_field") == metadata["enum_field"]
+    assert extra_data_get.get("multiselect_field") == metadata["multiselect_field"]
 
 
-def test_box_metadata_template_update(dummy_client):
-    body = [{'op': 'replace', 'path': '/displayName', 'value': 'New'}]
-    scope = UpdateMetadataTemplateScope.GLOBAL
-    result = box_metadata_template_update(dummy_client, scope, 'tmpl6', body)
-    assert result == {'scope': scope, 'template_key': 'tmpl6', 'request_body': body}
-    assert dummy_client.metadata_templates.calls == [('update', scope, 'tmpl6', body)]
-
-
-def test_box_metadata_template_delete(dummy_client):
-    scope = DeleteMetadataTemplateScope.ENTERPRISE
-    result = box_metadata_template_delete(dummy_client, scope, 'tmpl7')
-    assert result is None
-    assert dummy_client.metadata_templates.calls == [('delete', scope, 'tmpl7')]
-
-
-def test_box_metadata_template_list_by_instance_id(dummy_client):
-    result = box_metadata_template_list_by_instance_id(dummy_client, 'inst1', marker='a', limit=3)
-    assert result == {'metadata_instance_id': 'inst1', 'marker': 'a', 'limit': 3}
-    assert dummy_client.metadata_templates.calls == [('list_by_instance', 'inst1', 'a', 3)]
+@pytest.mark.skip(reason="Delete Pytest leftovers")
+def test_delete_all_pytest_templates(box_client_ccg: BoxClient):
+    # list all templates that start with "Pytest Template"
+    templates = _box_metadata_template_list(box_client_ccg)
+    for template in templates.entries:
+        if template.display_name.startswith("Pytest Template"):
+            try:
+                _box_metadata_template_delete(
+                    box_client_ccg, template_key=template.template_key
+                )
+            except Exception as e:
+                print(f"Failed to delete template {template.display_name}: {e}")
