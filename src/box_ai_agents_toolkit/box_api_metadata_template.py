@@ -117,7 +117,7 @@ def _box_metadata_template_list_by_instance_id(
 def box_metadata_template_get_by_key(
     client: BoxClient,
     template_key: str,
-) -> MetadataTemplate:
+) -> Dict:
     """
     Retrieve a metadata template definition by scope and key.
     """
@@ -157,7 +157,7 @@ def box_metadata_template_get_by_name(
     for template in templates.entries:
         if template.display_name == display_name:
             return template.to_dict()
-    return {"error": "Template not found"}
+    return {"message": "Template not found"}
 
 
 def box_metadata_set_instance_on_file(
