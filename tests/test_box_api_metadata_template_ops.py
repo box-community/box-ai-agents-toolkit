@@ -117,13 +117,13 @@ def test_box_metadata_find_template_by_name(
     box_client_ccg: BoxClient, created_template: MetadataTemplate
 ):
     """Test finding a metadata template by display name."""
-    response: MetadataTemplate = box_metadata_template_get_by_name(
+    response = box_metadata_template_get_by_name(
         box_client_ccg, display_name=created_template.display_name
     )
     assert response is not None
-    assert response.display_name == created_template.display_name
-    assert response.template_key is not None
-    assert response.id is not None
+    assert response.get("displayName") == created_template.display_name
+    assert response.get("templateKey") is not None
+    assert response.get("id") is not None
 
 
 def test_box_metadata_template_list(

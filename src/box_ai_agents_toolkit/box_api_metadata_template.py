@@ -5,7 +5,7 @@ See: https://developer.box.com/reference#metadata-templates
 
 from typing import Any, Dict, List, Optional
 
-from box_sdk_gen import BoxClient, Metadata
+from box_sdk_gen import BoxClient, Metadata, BoxAPIError
 from box_sdk_gen.managers.metadata_templates import (
     UpdateMetadataTemplateScope,
 )
@@ -121,9 +121,15 @@ def box_metadata_template_get_by_key(
     """
     Retrieve a metadata template definition by scope and key.
     """
-    return client.metadata_templates.get_metadata_template(
-        scope="enterprise", template_key=template_key
-    )
+    try:
+        return client.metadata_templates.get_metadata_template(
+            scope="enterprise", template_key=template_key
+        ).to_dict()
+    except BoxAPIError as e:
+        if e.status == 404:
+            return {"error": f"Metadata template with key '{template_key}' not found."}
+        else:
+            raise e
 
 
 def box_metadata_template_get_by_id(
@@ -139,7 +145,7 @@ def box_metadata_template_get_by_id(
 def box_metadata_template_get_by_name(
     client: BoxClient,
     display_name: str,
-) -> Optional[MetadataTemplate]:
+) -> Dict:
     """
     Find a metadata template by its display name within a given scope.
 
@@ -153,8 +159,8 @@ def box_metadata_template_get_by_name(
     templates = _box_metadata_template_list(client)
     for template in templates.entries:
         if template.display_name == display_name:
-            return template
-    return None
+            return template.to_dict()
+    return {"error": "Template not found"}
 
 
 def box_metadata_set_instance_on_file(
