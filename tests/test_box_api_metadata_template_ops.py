@@ -8,13 +8,10 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     _box_metadata_template_create,
     _box_metadata_template_delete,
     box_metadata_template_get_by_name,
+    box_metadata_template_get_by_key,
     box_metadata_set_instance_on_file,
     box_metadata_get_instance_on_file,
-    box_metadata_template_get_by_key,
-    box_metadata_template_get_by_id,
     _box_metadata_template_list,
-    _box_metadata_template_list_by_instance_id,
-    _box_metadata_template_update,
 )
 
 
@@ -124,6 +121,31 @@ def test_box_metadata_find_template_by_name(
     assert response.get("displayName") == created_template.display_name
     assert response.get("templateKey") is not None
     assert response.get("id") is not None
+
+
+def test_box_metadata_template_get_by_key(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test retrieving a metadata template by its key."""
+    response = box_metadata_template_get_by_key(
+        box_client_ccg, template_key=created_template.template_key
+    )
+    assert response is not None
+    assert isinstance(response, dict)
+    assert response.get("displayName") == created_template.display_name
+    assert response.get("templateKey") == created_template.template_key
+    assert response.get("id") == created_template.id
+
+    # Test retrieving a non-existent template
+    response_non_existent = box_metadata_template_get_by_key(
+        box_client_ccg, template_key="non_existent_template_key"
+    )
+    assert response_non_existent is not None
+    assert isinstance(response_non_existent, dict)
+
+    # The response should contain 404
+    assert "error" in response_non_existent
+    assert "404" in response_non_existent["error"]
 
 
 def test_box_metadata_template_list(

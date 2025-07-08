@@ -126,10 +126,7 @@ def box_metadata_template_get_by_key(
             scope="enterprise", template_key=template_key
         ).to_dict()
     except BoxAPIError as e:
-        if e.status == 404:
-            return {"error": f"Metadata template with key '{template_key}' not found."}
-        else:
-            raise e
+        return {"error": e.message}
 
 
 def box_metadata_template_get_by_id(
