@@ -12,6 +12,7 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     _box_metadata_template_list,
     box_metadata_get_instance_on_file,
     box_metadata_set_instance_on_file,
+    box_metadata_delete_instance_on_file,
     box_metadata_template_get_by_key,
     box_metadata_template_get_by_name,
 )
@@ -217,6 +218,38 @@ def test_box_metadata_set_get_instance_on_file(
     assert extra_data_get.get("float_field") == metadata["float_field"]
     assert extra_data_get.get("enum_field") == metadata["enum_field"]
     assert extra_data_get.get("multiselect_field") == metadata["multiselect_field"]
+
+
+def test_box_metadata_delete_instance_on_file(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test deleting a metadata template instance on a file."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    metadata = get_metadata()
+
+    # Set metadata on the file
+    response = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, metadata
+    )
+    assert response is not None
+
+    # Now delete the metadata instance
+    response_delete = box_metadata_delete_instance_on_file(
+        box_client_ccg, file_id=file_id, template_key=created_template.template_key
+    )
+    assert response_delete is not None  # Assuming delete returns None on success
+    assert isinstance(response_delete, dict)
+    assert response_delete.get("message") == "Metadata instance deleted successfully"
+
+    # Verify that the metadata instance is deleted
+    response_get = box_metadata_get_instance_on_file(
+        box_client_ccg, file_id=file_id, template_key=created_template.template_key
+    )
+    assert response_get is not None
+    assert isinstance(response_get, dict)
+    assert response_get.get("error") is not None
+    # Error contains a 404
+    assert "404" in response_get["error"]
 
 
 @pytest.mark.skip(reason="Delete Pytest leftovers")

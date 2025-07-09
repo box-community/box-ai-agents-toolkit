@@ -220,3 +220,28 @@ def box_metadata_get_instance_on_file(
         return resp.to_dict()
     except BoxAPIError as e:
         return {"error": e.message}
+
+
+def box_metadata_delete_instance_on_file(
+    client: BoxClient,
+    file_id: str,
+    template_key: str,
+) -> Dict[str, Any]:
+    """
+    Delete the metadata template instance associated with a specific file.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to delete metadata from.
+        template_key (str): The key of the metadata template to delete.
+
+    Returns:
+        Dict[str, Any]: Confirmation of deletion or error message.
+    """
+    try:
+        client.file_metadata.delete_file_metadata_by_id(
+            file_id=file_id, scope="enterprise", template_key=template_key
+        )
+        return {"message": "Metadata instance deleted successfully"}
+    except BoxAPIError as e:
+        return {"error": e.message}
