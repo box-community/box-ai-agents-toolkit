@@ -10,9 +10,9 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     _box_metadata_template_create,
     _box_metadata_template_delete,
     _box_metadata_template_list,
+    box_metadata_delete_instance_on_file,
     box_metadata_get_instance_on_file,
     box_metadata_set_instance_on_file,
-    box_metadata_delete_instance_on_file,
     box_metadata_template_get_by_key,
     box_metadata_template_get_by_name,
 )
