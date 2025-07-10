@@ -5,13 +5,12 @@ See: https://developer.box.com/reference#metadata-templates
 
 from typing import Any, Dict, List, Optional
 
-from box_sdk_gen import BoxAPIError, BoxClient
-from box_sdk_gen.managers.metadata_templates import (
-    UpdateMetadataTemplateScope,
-)
-from box_sdk_gen.schemas.metadata_template import MetadataTemplate
-from box_sdk_gen.schemas.metadata_templates import (
+from box_sdk_gen import (
+    BoxAPIError,
+    BoxClient,
+    MetadataTemplate,
     MetadataTemplates,
+    UpdateMetadataTemplateScope,
 )
 
 
@@ -216,6 +215,67 @@ def box_metadata_get_instance_on_file(
     try:
         resp = client.file_metadata.get_file_metadata_by_id(
             file_id=file_id, scope="enterprise", template_key=template_key
+        )
+        return resp.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
+def box_metadata_update_instance_on_file(
+    client: BoxClient,
+    file_id: str,
+    template_key: str,
+    metadata: Dict[str, Any],
+    remove_non_included_data: bool = False,
+) -> Dict[str, Any]:
+    """
+    Update the metadata template instance associated with a specific file.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update metadata on.
+        template_key (str): The key of the metadata template to update.
+        metadata (Dict[str, Any]): The updated metadata instance.
+        remove_non_included_data (bool): If True, remove data from fields not included in the metadata.
+
+    Returns:
+        Dict[str, Any]: The updated metadata instance or error message.
+    """
+    # Read existing metadata instance
+    existing_metadata = box_metadata_get_instance_on_file(
+        client, file_id=file_id, template_key=template_key
+    )
+    if "error" in existing_metadata:
+        return existing_metadata
+    existing_metadata = existing_metadata.get("extra_data", {})
+    # Compare each field and update only if necessary
+    # each field in metadata should be a key-value pair
+    # with an additional property 'operation' to indicate the operation
+    # supported operations are 'replace', 'add', 'remove'
+    request_body = []
+    for key, value in metadata.items():
+        if key in existing_metadata:
+            if value != existing_metadata[key]:
+                request_body.append(
+                    {"op": "replace", "path": f"/{key}", "value": value}
+                )
+        else:
+            request_body.append({"op": "add", "path": f"/{key}", "value": value})
+
+    # If there are fields to remove, add them to the request body
+    if remove_non_included_data:
+        for key in existing_metadata:
+            if key not in metadata:
+                request_body.append({"op": "remove", "path": f"/{key}"})
+
+    if not request_body:
+        return {"message": "No changes to update"}
+    try:
+        resp = client.file_metadata.update_file_metadata_by_id(
+            file_id=file_id,
+            scope="enterprise",
+            template_key=template_key,
+            request_body=request_body,
         )
         return resp.to_dict()
     except BoxAPIError as e:

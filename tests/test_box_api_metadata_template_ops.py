@@ -15,6 +15,7 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     box_metadata_set_instance_on_file,
     box_metadata_template_get_by_key,
     box_metadata_template_get_by_name,
+    box_metadata_update_instance_on_file,
 )
 
 
@@ -250,6 +251,187 @@ def test_box_metadata_delete_instance_on_file(
     assert response_get.get("error") is not None
     # Error contains a 404
     assert "404" in response_get["error"]
+
+
+def test_box_metadata_update_instance_on_file_full_update(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test updating a metadata template instance on a file."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    initial_metadata = get_metadata()
+
+    # Set initial metadata on the file
+    response_set = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, initial_metadata
+    )
+    # response has no error
+    assert response_set is not None
+    assert isinstance(response_set, dict)
+    assert response_set.get("error") is None
+
+    # Prepare updated metadata
+    updated_metadata = {
+        "test_field": "Updated Value",
+        "date_field": "2023-11-01T00:00:00.000Z",
+        "float_field": 2.71,
+        "enum_field": "option2",
+        "multiselect_field": ["option2"],
+    }
+
+    # Update metadata on the file
+    response_update = box_metadata_update_instance_on_file(
+        box_client_ccg,
+        file_id=file_id,
+        template_key=created_template.template_key,
+        metadata=updated_metadata,
+        remove_non_included_data=True,
+    )
+
+    assert response_update is not None
+    assert isinstance(response_update, dict)
+    assert response_update.get("error") is None
+
+    extra_data_get = response_update.get("extra_data", {})
+
+    assert extra_data_get.get("test_field") == updated_metadata["test_field"]
+    assert extra_data_get.get("date_field") == updated_metadata["date_field"]
+    assert extra_data_get.get("float_field") == updated_metadata["float_field"]
+    assert extra_data_get.get("enum_field") == updated_metadata["enum_field"]
+    assert (
+        extra_data_get.get("multiselect_field") == updated_metadata["multiselect_field"]
+    )
+
+
+def test_box_metadata_update_instance_on_file_partial_update(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test updating a metadata template instance on a file with partial update."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    initial_metadata = get_metadata()
+
+    # Set initial metadata on the file
+    response_set = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, initial_metadata
+    )
+    assert response_set is not None
+    assert isinstance(response_set, dict)
+    assert response_set.get("error") is None
+
+    # Prepare updated metadata with only some fields changed
+    updated_metadata = {
+        "test_field": "Partially Updated Value",
+        "float_field": 1.41,
+        # Intentionally leaving out date_field and enum_field to test partial update
+    }
+
+    # Update metadata on the file
+    response_update = box_metadata_update_instance_on_file(
+        box_client_ccg,
+        file_id=file_id,
+        template_key=created_template.template_key,
+        metadata=updated_metadata,
+        remove_non_included_data=False,  # Do not remove fields not included in the update
+    )
+
+    assert response_update is not None
+    assert isinstance(response_update, dict)
+    assert response_update.get("error") is None
+
+    extra_data_get = response_update.get("extra_data", {})
+
+    assert extra_data_get.get("test_field") == updated_metadata["test_field"]
+    assert extra_data_get.get("float_field") == updated_metadata["float_field"]
+    assert extra_data_get.get("date_field") == initial_metadata["date_field"]
+    assert extra_data_get.get("enum_field") == initial_metadata["enum_field"]
+
+
+def test_box_metadata_update_instance_on_file_partial_update_remove_not_included(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test updating a metadata template instance on a file with partial update and removing non-included fields."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    initial_metadata = get_metadata()
+
+    # Set initial metadata on the file
+    response_set = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, initial_metadata
+    )
+    assert response_set is not None
+    assert isinstance(response_set, dict)
+    assert response_set.get("error") is None
+
+    # Prepare updated metadata with only some fields changed
+    updated_metadata = {
+        "test_field": "Partially Updated Value",
+        "float_field": 1.41,
+        # Intentionally leaving out date_field and enum_field to test removal of non-included fields
+    }
+
+    # Update metadata on the file
+    response_update = box_metadata_update_instance_on_file(
+        box_client_ccg,
+        file_id=file_id,
+        template_key=created_template.template_key,
+        metadata=updated_metadata,
+        remove_non_included_data=True,  # Remove fields not included in the update
+    )
+
+    assert response_update is not None
+    assert isinstance(response_update, dict)
+    assert response_update.get("error") is None
+
+    extra_data_get = response_update.get("extra_data", {})
+
+    assert extra_data_get.get("test_field") == updated_metadata["test_field"]
+    assert extra_data_get.get("float_field") == updated_metadata["float_field"]
+    assert extra_data_get.get("date_field") is None  # Should be removed
+    assert extra_data_get.get("enum_field") is None  # Should be removed
+
+
+def test_box_metadata_update_instance_on_file_add_missing_fields(
+    box_client_ccg: BoxClient, created_template: MetadataTemplate
+):
+    """Test updating a metadata template instance on a file by adding missing fields."""
+    file_id = "1918361187949"  # Replace with a valid file ID for testing
+    initial_metadata = {
+        "test_field": "Original Value",
+        "date_field": "2025-10-01T00:00:00.000Z",
+        # intentionally leaving out float_field and enum_field to test adding missing fields
+    }
+
+    # Set initial metadata on the file
+    response_set = box_metadata_set_instance_on_file(
+        box_client_ccg, created_template.template_key, file_id, initial_metadata
+    )
+    assert response_set is not None
+    assert isinstance(response_set, dict)
+    assert response_set.get("error") is None
+
+    # Prepare updated metadata with some fields missing
+    updated_metadata = get_metadata()
+
+    # Update metadata on the file
+    response_update = box_metadata_update_instance_on_file(
+        box_client_ccg,
+        file_id=file_id,
+        template_key=created_template.template_key,
+        metadata=updated_metadata,
+        remove_non_included_data=False,  # Do not remove fields not included in the update
+    )
+
+    assert response_update is not None
+    assert isinstance(response_update, dict)
+    assert response_update.get("error") is None
+
+    extra_data_get = response_update.get("extra_data", {})
+
+    assert extra_data_get.get("test_field") == updated_metadata["test_field"]
+    assert extra_data_get.get("date_field") == updated_metadata["date_field"]
+    assert extra_data_get.get("float_field") == updated_metadata["float_field"]
+    assert extra_data_get.get("enum_field") == updated_metadata["enum_field"]
+    assert (
+        extra_data_get.get("multiselect_field") == updated_metadata["multiselect_field"]
+    )
 
 
 @pytest.mark.skip(reason="Delete Pytest leftovers")
