@@ -1,7 +1,8 @@
 import json
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 from box_sdk_gen import (
+    BoxAPIError,
     AiAgentAsk,
     AiAgentAskTypeField,
     AiAgentBasicTextTool,
@@ -18,233 +19,144 @@ from box_sdk_gen import (
     CreateAiAskMode,
     CreateAiExtractStructuredFields,
     CreateAiExtractStructuredFieldsOptionsField,
+    AiAgentReference,
+    AiAgentReferenceTypeField,
 )
 
 from box_ai_agents_toolkit.box_api_file import box_file_get_by_id
 from box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
 
 
-def box_multi_file_ai_ask(
-    client: BoxClient, file_ids: List[str], prompt: str, ai_agent: AiAgentAsk = None
+def box_ai_ask_file_single(
+    client: BoxClient, file_id: str, prompt: str, ai_agent_id: Optional[str] = None
 ) -> Dict:
-    if len(file_ids) == 0:
-        raise ValueError("file_ids cannot be empty")
-    if len(file_ids) > 20:
-        raise ValueError("file_ids cannot be more than 20")
+    """Ask a question about a file using AI.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_id (str): The ID of the file to ask about, example: "1234567890".
+        prompt (str): The question to ask.
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the question. If None, the default AI agent will be used.
+
+    Returns:
+        Dict: The AI response containing the answer to the question.
+    """
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
+
+    mode = CreateAiAskMode.SINGLE_ITEM_QA
+    ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
+    try:
+        response: AiResponseFull = client.ai.create_ai_ask(
+            mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
+        )
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
+def box_ai_ask_file_multi(
+    client: BoxClient,
+    file_ids: List[str],
+    prompt: str,
+    ai_agent_id: Optional[str] = None,
+) -> Dict:
+    """Ask a question about multiple files using AI.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to ask about, example: ["1234567890", "0987654321"].
+        prompt (str): The question to ask.
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the question. If None, the default AI agent will be used.
+    Returns:
+        Dict: The AI response containing the answers to the questions for each file.
+    """
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
 
     mode = CreateAiAskMode.MULTIPLE_ITEM_QA
     ai_items = []
     for file_id in file_ids:
         ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
-    response: AiResponseFull = client.ai.create_ai_ask(
-        mode=mode, prompt=prompt, items=ai_items, ai_agent=ai_agent
-    )
-    return response.to_dict()
 
-
-def box_file_ai_ask(
-    client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
-) -> Dict:
-    mode = CreateAiAskMode.SINGLE_ITEM_QA
-    ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
-    response: AiResponseFull = client.ai.create_ai_ask(
-        mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
-    )
-    return response.to_dict()
-
-def box_hubs_ai_ask(
-    client: BoxClient, hubs_id: str, prompt: str, ai_agent: AiAgentAsk = None
-) -> Dict:
-    mode = CreateAiAskMode.SINGLE_ITEM_QA
-    ai_item = AiItemBase(id=hubs_id, type=AiItemAskTypeField.HUBS)
-    response: AiResponseFull = client.ai.create_ai_ask(
-        mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
-    )
-    return response.to_dict()
-
-def box_multi_file_ai_extract(
-    client: BoxClient, file_ids: List[str], prompt: str, ai_agent: AiAgentAsk = None
-) -> dict:
-    if len(file_ids) == 0:
-        raise ValueError("file_ids cannot be empty")
-    if len(file_ids) > 20:
-        raise ValueError("file_ids cannot be more than 20")
-
-    ai_items = []
-    for file_id in file_ids:
-        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
-    response: AiResponse = client.ai.create_ai_extract(
-        prompt=prompt, items=ai_items, ai_agent=ai_agent
-    )
-    return response.to_dict()
-
-
-def box_file_ai_extract(
-    client: BoxClient, file_id: str, prompt: str, ai_agent: AiAgentAsk = None
-) -> dict:
-    return box_multi_file_ai_extract(
-        client=client, file_ids=[file_id], prompt=prompt, ai_agent=ai_agent
-    )
-
-
-def box_multi_file_ai_extract_structured(
-    client: BoxClient, file_ids: List[str], fields_json_str: str
-) -> Dict:
-    if len(file_ids) == 0:
-        raise ValueError("file_ids cannot be empty")
-    if len(file_ids) > 20:
-        raise ValueError("file_ids cannot be more than 20")
-
-    ai_items = []
-    for file_id in file_ids:
-        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
-
-    fields_list = json.loads(fields_json_str)
-    ai_fields = []
-    options = []
-    for field in fields_list:
-        field_options = field.get("options")
-        if field_options is not None:
-            for option in field.get("options"):
-                options.append(
-                    CreateAiExtractStructuredFieldsOptionsField(key=option.get("key"))
-                )
-
-        ai_fields.append(
-            CreateAiExtractStructuredFields(
-                key=field.get("key"),
-                description=field.get("description"),
-                display_name=field.get("display_name"),
-                prompt=field.get("prompt"),
-                type=field.get("type"),
-                options=options if options is not None and len(options) > 0 else None,
-            )
+    try:
+        response: AiResponseFull = client.ai.create_ai_ask(
+            mode=mode, prompt=prompt, items=ai_items, ai_agent=ai_agent
         )
-    response: AiExtractResponse = client.ai.create_ai_extract_structured(
-        items=ai_items, fields=ai_fields
-    )
-    return response.to_dict()
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
-def box_file_ai_extract_structured(
-    client: BoxClient, file_id: str, fields_json_str: str
+def box_ai_ask_hub(
+    client: BoxClient,
+    hub_id: str,
+    prompt: str,
+    ai_agent_id: Optional[str] = None,
 ) -> Dict:
-    return box_multi_file_ai_extract_structured(
-        client=client, file_ids=[file_id], fields_json_str=fields_json_str
-    )
+    """Ask a question about a hub using AI.
+    Args:
+        client (BoxClient): The Box client instance.
+        hub_id (str): The ID of the hub to ask about, example: "1234567890".
+        prompt (str): The question to ask.
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the question. If None, the default AI agent will be used.
+    Returns:
+        Dict: The AI response containing the answer to the question.
+    """
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
+    mode = CreateAiAskMode.SINGLE_ITEM_QA
+    ai_item = AiItemBase(id=hub_id, type=AiItemAskTypeField.HUBS)
+    try:
+        response: AiResponseFull = client.ai.create_ai_ask(
+            mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
+        )
+        if response is None:
+            return {"message": "No response from Box AI"}
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
-def box_folder_ai_ask(
+def box_ai_extract_freeform(
     client: BoxClient,
-    folder_id: str,
+    file_ids: List[str],
     prompt: str,
-    is_recursive: bool = False,
-    by_pass_text_extraction: bool = False,
-) -> Iterable[BoxFileExtended]:
-    # folder items iterator
-    for item in client.folders.get_folder_items(folder_id).entries:
-        if item.type == "file":
-            file = box_file_get_by_id(client=client, file_id=item.id)
-            if not by_pass_text_extraction:
-                ai_response = box_file_ai_ask(
-                    client=client, file_id=item.id, prompt=prompt
-                )
-            else:
-                ai_response = {}
-            yield BoxFileExtended(
-                file=file, text_representation=None, ai_response=ai_response
-            )
-        elif item.type == "folder" and is_recursive:
-            yield from box_folder_ai_ask(
-                client=client,
-                folder_id=item.id,
-                prompt=prompt,
-                is_recursive=is_recursive,
-                by_pass_text_extraction=by_pass_text_extraction,
-            )
+    ai_agent_id: Optional[str] = None,
+) -> dict:
+    """Extract information from one or more files using AI.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to extract information from, example: ["1234567890", "0987654321"].
+        prompt (str): The fields to extract.
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the extraction. If None, the default AI agent will be used.
+    Returns:
+        dict: The AI response containing the extracted information.
+    """
+    if len(file_ids) == 0:
+        return {"error": "At least one file ID is required"}
+    if len(file_ids) >= 20:
+        return {"error": "No more than 20 files can be processed at once"}
 
-
-def box_folder_ai_extract(
-    client: BoxClient,
-    folder_id: str,
-    prompt: str,
-    is_recursive: bool = False,
-    by_pass_text_extraction: bool = False,
-) -> Iterable[BoxFileExtended]:
-    # folder items iterator
-    for item in client.folders.get_folder_items(folder_id).entries:
-        if item.type == "file":
-            file = box_file_get_by_id(client=client, file_id=item.id)
-            if not by_pass_text_extraction:
-                ai_response: Dict = box_file_ai_extract(
-                    client=client, file_id=item.id, prompt=prompt
-                )
-            else:
-                ai_response = {}
-            yield BoxFileExtended(file=file, ai_response=ai_response)
-        elif item.type == "folder" and is_recursive:
-            yield from box_folder_ai_extract(
-                client=client,
-                folder_id=item.id,
-                prompt=prompt,
-                is_recursive=is_recursive,
-                by_pass_text_extraction=by_pass_text_extraction,
-            )
-
-
-def box_folder_ai_extract_structured(
-    client: BoxClient,
-    folder_id: str,
-    fields_json_str: str,
-    is_recursive: bool = False,
-    by_pass_text_extraction: bool = False,
-) -> Iterable[BoxFileExtended]:
-    # folder items iterator
-    for item in client.folders.get_folder_items(folder_id).entries:
-        if item.type == "file":
-            file = box_file_get_by_id(client=client, file_id=item.id)
-            if not by_pass_text_extraction:
-                ai_response: Dict = box_file_ai_extract_structured(
-                    client=client, file_id=item.id, fields_json_str=fields_json_str
-                )
-            else:
-                ai_response = {}
-            yield BoxFileExtended(file=file, ai_response=ai_response)
-        elif item.type == "folder" and is_recursive:
-            yield from box_folder_ai_extract_structured(
-                client=client,
-                folder_id=item.id,
-                fields_json_str=fields_json_str,
-                is_recursive=is_recursive,
-                by_pass_text_extraction=by_pass_text_extraction,
-            )
-
-
-def box_claude_ai_agent_ask() -> AiAgentAsk:
-    return AiAgentAsk(
-        type=AiAgentAskTypeField.AI_AGENT_ASK,
-        long_text=AiAgentLongTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-        basic_text=AiAgentBasicTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-        long_text_multi=AiAgentLongTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-        basic_text_multi=AiAgentBasicTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-    )
-
-
-def box_claude_ai_agent_extract() -> AiAgentExtract:
-    return AiAgentExtract(
-        type=AiAgentExtractTypeField.AI_AGENT_EXTRACT,
-        long_text=AiAgentLongTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-        basic_text=AiAgentBasicTextTool(
-            model="aws__claude_3_7_sonnet",
-        ),
-    )
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
+    try:
+        response: AiResponse = client.ai.create_ai_extract(
+            prompt=prompt, items=ai_items, ai_agent=ai_agent
+        )
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}

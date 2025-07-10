@@ -9,7 +9,7 @@ from box_sdk_gen import (
 sdk = ["BoxClient", "BoxSDKError", "File", "Folder", "SearchForContentContentTypes"]
 
 
-from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
+from box_ai_agents_toolkit.box_api_ai_deprecated import (  # noqa: E402
     box_claude_ai_agent_ask,  # noqa: F401
     box_claude_ai_agent_extract,  # noqa: F401
     box_file_ai_ask,  # noqa: F401
@@ -24,7 +24,21 @@ from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
     box_multi_file_ai_extract_structured,  # noqa: F401
 )
 
+from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
+    box_ai_ask_file_single,  # noqa: F401
+    box_ai_ask_file_multi,  # noqa: F401
+    box_ai_ask_hub,  # noqa: F401
+    box_ai_extract_freeform,  # noqa: F401
+)
+
 ai = [
+    "box_ai_ask_file",
+    "box_ai_ask_file_multi",
+    "box_ai_ask_hub",
+    "box_ai_extract_freeform",
+]
+
+ai_deprecated = [
     "box_file_ai_ask",
     "box_file_ai_extract",
     "box_file_ai_extract_structured",
@@ -155,6 +169,7 @@ metadata_template = [
 __all__ = []
 
 __all__.extend(sdk)
+__all__.extend(ai_deprecated)
 __all__.extend(ai)
 __all__.extend(file)
 __all__.extend(folder)
