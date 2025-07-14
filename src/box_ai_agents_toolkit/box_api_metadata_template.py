@@ -23,7 +23,7 @@ def box_metadata_template_create(
     fields: List[Dict[str, Any]],
     *,
     template_key: Optional[str] = None,
-) -> MetadataTemplate:
+) -> dict:
     """
     Create a new metadata template definition in Box.
 
@@ -91,14 +91,18 @@ def box_metadata_template_create(
                 options=field.get("options"),
             )
         )
-    return client.metadata_templates.create_metadata_template(
-        scope=scope,
-        display_name=display_name,
-        template_key=template_key,
-        hidden=False,
-        fields=metadata_template_fields,
-        copy_instance_on_item_copy=False,
-    )
+    try:
+        response = client.metadata_templates.create_metadata_template(
+            scope=scope,
+            display_name=display_name,
+            template_key=template_key,
+            hidden=False,
+            fields=metadata_template_fields,
+            copy_instance_on_item_copy=False,
+        )
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
 def _box_metadata_template_list(
