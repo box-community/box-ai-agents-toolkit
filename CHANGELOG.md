@@ -1,5 +1,31 @@
 # Changelog
 ## 0.0.26 - 2025-03-25
+## 0.0.43 - 2025-07-14
+
+* fixing exports (7ec2683)
+* metadata template add create template (b035a50)
+* metadata template add create template (1ab446f)
+* metadata template add create template (036b565)
+* metadata template add create template (43e30b6)
+* metadata template add create template (7740a7f)
+* ruff (83cadb9)
+* feature extract structured enhanced using fields and templates (59c506c)
+* feature extract structured using fields and templates (30f81b9)
+* [REF] AI API - AI ASK + AI Extract freeform (ba47826)
+* adding file metadata instance update feature (f363959)
+* exposing delete metadata on file (2cf6abb)
+* linting (38ec4ad)
+* delete metadata file instance (ec12e3a)
+* [FIX] make template search by name case insensitive (d718150)
+* fixing return dict in find metadata by key and handle api errors and ruffing (63c313f)
+* fixing return dict in find metadata by key and handle api errors (4fec330)
+* fixing return dict in find metadata by key and handle api errors (b9091c7)
+* fixing return dict in find metadata by key (6e26241)
+* Box Metadata (752ecf3)
+* Box Metadata (857ed8b)
+* update (055ba66)
+* revert toml (6d6ae47)
+* adjust vs (62d0fed)
 ## 0.0.41 - 2025-04-28
 
 * linting (06b37f9)
