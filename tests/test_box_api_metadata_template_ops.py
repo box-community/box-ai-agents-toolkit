@@ -80,9 +80,10 @@ def created_template(box_client_ccg: BoxClient, template_name: str):
     yield template
     # Cleanup
     try:
-        _box_metadata_template_delete(
-            box_client_ccg, template_key=template.template_key
-        )
+        if template.template_key is not None:
+            _box_metadata_template_delete(
+                box_client_ccg, template_key=template.template_key
+            )
     except Exception:
         pass  # Template might already be deleted
 
@@ -106,6 +107,8 @@ def test_box_metadata_find_template_by_name(
     box_client_ccg: BoxClient, created_template: MetadataTemplate
 ):
     """Test finding a metadata template by display name."""
+
+    assert created_template.display_name is not None
     response = box_metadata_template_get_by_name(
         box_client_ccg, display_name=created_template.display_name
     )
@@ -136,6 +139,7 @@ def test_box_metadata_template_get_by_key(
     box_client_ccg: BoxClient, created_template: MetadataTemplate
 ):
     """Test retrieving a metadata template by its key."""
+    assert created_template.template_key is not None, "template_key must not be None"
     response = box_metadata_template_get_by_key(
         box_client_ccg, template_key=created_template.template_key
     )
@@ -163,7 +167,7 @@ def test_box_metadata_template_list(
     """Test listing metadata templates."""
     response: MetadataTemplates = _box_metadata_template_list(box_client_ccg)
     assert response is not None
-    assert len(response.entries) > 0
+    assert response.entries is not None and len(response.entries) > 0
     # Check it the template created shows up on the list
     assert any(
         template.template_key == created_template.template_key
@@ -177,6 +181,9 @@ def test_box_metadata_set_get_instance_on_file(
     """Test setting a metadata template instance on a file."""
     file_id = "1918361187949"  # Replace with a valid file ID for testing
     metadata = get_metadata()
+
+    if created_template.template_key is None:
+        pytest.skip("Template key is None, cannot set metadata on file.")
 
     # Set metadata on the file
     response = box_metadata_set_instance_on_file(
@@ -215,7 +222,8 @@ def test_box_metadata_delete_instance_on_file(
     """Test deleting a metadata template instance on a file."""
     file_id = "1918361187949"  # Replace with a valid file ID for testing
     metadata = get_metadata()
-
+    if created_template.template_key is None:
+        pytest.skip("Template key is None, cannot set metadata on file.")
     # Set metadata on the file
     response = box_metadata_set_instance_on_file(
         box_client_ccg, created_template.template_key, file_id, metadata
@@ -248,6 +256,8 @@ def test_box_metadata_update_instance_on_file_full_update(
     file_id = "1918361187949"  # Replace with a valid file ID for testing
     initial_metadata = get_metadata()
 
+    assert created_template is not None
+    assert created_template.template_key is not None
     # Set initial metadata on the file
     response_set = box_metadata_set_instance_on_file(
         box_client_ccg, created_template.template_key, file_id, initial_metadata
@@ -297,6 +307,8 @@ def test_box_metadata_update_instance_on_file_partial_update(
     file_id = "1918361187949"  # Replace with a valid file ID for testing
     initial_metadata = get_metadata()
 
+    assert created_template is not None
+    assert created_template.template_key is not None
     # Set initial metadata on the file
     response_set = box_metadata_set_instance_on_file(
         box_client_ccg, created_template.template_key, file_id, initial_metadata
@@ -340,6 +352,8 @@ def test_box_metadata_update_instance_on_file_partial_update_remove_not_included
     file_id = "1918361187949"  # Replace with a valid file ID for testing
     initial_metadata = get_metadata()
 
+    assert created_template is not None
+    assert created_template.template_key is not None
     # Set initial metadata on the file
     response_set = box_metadata_set_instance_on_file(
         box_client_ccg, created_template.template_key, file_id, initial_metadata
@@ -387,6 +401,8 @@ def test_box_metadata_update_instance_on_file_add_missing_fields(
         # intentionally leaving out float_field and enum_field to test adding missing fields
     }
 
+    assert created_template is not None
+    assert created_template.template_key is not None
     # Set initial metadata on the file
     response_set = box_metadata_set_instance_on_file(
         box_client_ccg, created_template.template_key, file_id, initial_metadata
@@ -426,11 +442,18 @@ def test_box_metadata_update_instance_on_file_add_missing_fields(
 def test_delete_all_pytest_templates(box_client_ccg: BoxClient):
     # list all templates that start with "Pytest Template"
     templates = _box_metadata_template_list(box_client_ccg)
-    for template in templates.entries:
-        if template.display_name.startswith("Pytest Template"):
-            try:
-                _box_metadata_template_delete(
-                    box_client_ccg, template_key=template.template_key
-                )
-            except Exception as e:
-                print(f"Failed to delete template {template.display_name}: {e}")
+
+    if templates.entries is not None:
+        for template in templates.entries:
+            if (
+                template.display_name is not None
+                and template.display_name.startswith("Pytest Template")
+                and template.template_key is not None
+            ):
+                try:
+                    if template.template_key is not None:
+                        _box_metadata_template_delete(
+                            box_client_ccg, template_key=template.template_key
+                        )
+                except Exception as e:
+                    print(f"Failed to delete template {template.display_name}: {e}")

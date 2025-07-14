@@ -10,10 +10,13 @@ from box_sdk_gen import (
     BoxClient,
     CreateFileMetadataByIdScope,
     CreateMetadataTemplateFields,
+    DeleteFileMetadataByIdScope,
+    DeleteMetadataTemplateScope,
     GetFileMetadataByIdScope,
+    GetMetadataTemplateScope,
     MetadataTemplate,
     MetadataTemplates,
-    UpdateMetadataTemplateScope,
+    UpdateFileMetadataByIdScope,
 )
 
 
@@ -35,9 +38,8 @@ def _box_metadata_template_create(
     Returns:
         MetadataTemplate: The created metadata template definition.
     """
-    scope = "enterprise"  # Default scope, can be changed as needed
     return client.metadata_templates.create_metadata_template(
-        scope=scope,
+        scope="enterprise",  # Default scope
         display_name=display_name,
         fields=fields or [],
         copy_instance_on_item_copy=copy_instance_on_item_copy or False,
@@ -150,18 +152,27 @@ def _box_metadata_template_list(
     )
 
 
-def _box_metadata_template_update(
-    client: BoxClient,
-    scope: UpdateMetadataTemplateScope,
-    template_key: str,
-    request_body: List[Dict[str, Any]],
-) -> MetadataTemplate:
-    """
-    Update a metadata template definition.
-    """
-    return client.metadata_templates.update_metadata_template(
-        scope=scope, template_key=template_key, request_body=request_body
-    )
+# def _box_metadata_template_update(
+#     client: BoxClient,
+#     scope: UpdateMetadataTemplateScope,
+#     template_key: str,
+#     request_body: List[Dict[str, Any]],
+# ) -> MetadataTemplate:
+#     """
+#     Update a metadata template definition.
+#     """
+#     formalize_request_body: List[UpdateMetadataTemplateRequestBody]=[]
+#     for item in request_body:
+#         formalize_request_body.append(
+#             UpdateMetadataTemplateRequestBody(
+#                 op=item["op"],
+#                 path=item["path"],
+#                 value=item.get("value"),
+#             )
+#         )
+#     return client.metadata_templates.update_metadata_template(
+#         scope=scope, template_key=template_key, request_body=request_body
+#     )
 
 
 def _box_metadata_template_delete(
@@ -171,9 +182,8 @@ def _box_metadata_template_delete(
     """
     Delete a metadata template definition.
     """
-    scope = "enterprise"  # Default scope, can be changed as needed
     client.metadata_templates.delete_metadata_template(
-        scope=scope, template_key=template_key
+        scope=DeleteMetadataTemplateScope.ENTERPRISE, template_key=template_key
     )
 
 
@@ -200,7 +210,7 @@ def box_metadata_template_get_by_key(
     """
     try:
         return client.metadata_templates.get_metadata_template(
-            scope="enterprise", template_key=template_key
+            scope=GetMetadataTemplateScope.ENTERPRISE, template_key=template_key
         ).to_dict()
     except BoxAPIError as e:
         return {"error": e.message}
@@ -236,7 +246,10 @@ def box_metadata_template_get_by_name(
         Optional[MetadataTemplate]: The found metadata template or None if not found.
     """
     templates = _box_metadata_template_list(client)
-    for template in templates.entries:
+    entries = getattr(templates, "entries", None)
+    if entries is None:
+        return {"message": "No templates found"}
+    for template in entries:
         if template.display_name.lower() == display_name.lower():
             return template.to_dict()
     return {"message": "Template not found"}
@@ -350,10 +363,11 @@ def box_metadata_update_instance_on_file(
 
     if not request_body:
         return {"message": "No changes to update"}
+
     try:
         resp = client.file_metadata.update_file_metadata_by_id(
             file_id=file_id,
-            scope="enterprise",
+            scope=UpdateFileMetadataByIdScope.ENTERPRISE,
             template_key=template_key,
             request_body=request_body,
         )
@@ -380,7 +394,9 @@ def box_metadata_delete_instance_on_file(
     """
     try:
         client.file_metadata.delete_file_metadata_by_id(
-            file_id=file_id, scope="enterprise", template_key=template_key
+            file_id=file_id,
+            scope=DeleteFileMetadataByIdScope.ENTERPRISE,
+            template_key=template_key,
         )
         return {"message": "Metadata instance deleted successfully"}
     except BoxAPIError as e:
