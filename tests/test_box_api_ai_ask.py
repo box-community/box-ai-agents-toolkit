@@ -3,12 +3,15 @@ from box_ai_agents_toolkit import (
     box_ai_ask_file_multi,
     box_ai_ask_hub,
     box_ai_extract_freeform,
+    box_ai_extract_structured_using_fields,
+    box_ai_extract_structured_using_template,
 )
 from box_sdk_gen import BoxClient
 
-FILE_A_ID = "1918161198980"
-FILE_B_ID = "1918164583027"
+FILE_A_ID = "1918161198980"  # Policy
+FILE_B_ID = "1918164583027"  # Claim
 HUB_ID = "370336300"
+TEMPLATE_KEY = "acmePolicy"  # Example template key for structured extraction
 
 
 def test_box_ai_ask_file(box_client_ccg: BoxClient):
@@ -121,3 +124,89 @@ def test_box_ai_extract_freeform(box_client_ccg: BoxClient):
     assert "answer" in response
     for field in prompt.split(", "):
         assert field in response["answer"]
+
+
+def test_box_ai_extract_structured(box_client_ccg: BoxClient):
+    """Test the box_ai_extract_structured function."""
+    fields = [
+        {
+            "type": "string",
+            "key": "name",
+            "displayName": "Name",
+            "description": "Policyholder Name",
+        },
+        {
+            "type": "string",
+            "key": "number",
+            "displayName": "Number",
+            "description": "Policy Number",
+        },
+        {
+            "type": "date",
+            "key": "effectiveDate",
+            "displayName": "Effective Date",
+            "description": "Policy Effective Date",
+        },
+        {
+            "type": "enum",
+            "key": "paymentTerms",
+            "displayName": "Payment Terms",
+            "description": "Frequency of payment per year",
+            "options": [
+                {"key": "Monthly"},
+                {"key": "Quarterly"},
+                {"key": "Semiannual"},
+                {"key": "Annually"},
+            ],
+        },
+        {
+            "type": "multiSelect",
+            "key": "coverageTypes",
+            "displayName": "Coverage Types",
+            "description": "Types of coverage for the policy",
+            "prompt": "Look in the coverage type table and include all listed types.",
+            "options": [
+                {"key": "Body Injury Liability"},
+                {"key": "Property Damage Liability"},
+                {"key": "Personal Damage Liability"},
+                {"key": "Collision"},
+                {"key": "Comprehensive"},
+                {"key": "Uninsured Motorist"},
+                {"key": "Something that does not exist"},
+            ],
+        },
+    ]
+
+    response = box_ai_extract_structured_using_fields(
+        client=box_client_ccg,
+        file_ids=[FILE_A_ID],
+        fields=fields,
+    )
+    assert isinstance(response, dict)
+    assert "error" not in response
+    metadata = response.get("answer", {})
+
+    # check if fields exits in metadata
+    assert metadata.get("name") is not None
+    assert metadata.get("number") is not None
+    assert metadata.get("effectiveDate") is not None
+    assert metadata.get("paymentTerms") is not None
+    assert metadata.get("coverageTypes") is not None
+
+
+def test_box_ai_extract_structured_using_template(box_client_ccg: BoxClient):
+    """Test the box_ai_extract_structured_using_template function."""
+    response = box_ai_extract_structured_using_template(
+        client=box_client_ccg,
+        file_ids=[FILE_A_ID],
+        template_key=TEMPLATE_KEY,
+    )
+    assert isinstance(response, dict)
+    assert "error" not in response
+    metadata = response.get("answer", {})
+
+    # check if fields exits in metadata
+    assert metadata.get("name") is not None
+    assert metadata.get("number") is not None
+    assert metadata.get("effectiveDate") is not None
+    assert metadata.get("paymentTerms") is not None

@@ -1,9 +1,9 @@
-import json
-from typing import Dict, Iterable, List, Optional
+from typing import Dict, Iterable, List, Optional, Any
 
 from box_sdk_gen import (
     BoxAPIError,
     AiAgentAsk,
+    AiItemAsk,
     AiAgentAskTypeField,
     AiAgentBasicTextTool,
     AiAgentExtract,
@@ -21,6 +21,10 @@ from box_sdk_gen import (
     CreateAiExtractStructuredFieldsOptionsField,
     AiAgentReference,
     AiAgentReferenceTypeField,
+    CreateAiExtractStructuredFields,
+    CreateAiExtractStructuredFieldsOptionsField,
+    AiExtractStructuredResponse,
+    CreateAiExtractStructuredMetadataTemplate,
 )
 
 from box_ai_agents_toolkit.box_api_file import box_file_get_by_id
@@ -43,15 +47,17 @@ def box_ai_ask_file_single(
     ai_agent = None
     if ai_agent_id is not None:
         ai_agent = AiAgentReference(
-            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
         )
 
     mode = CreateAiAskMode.SINGLE_ITEM_QA
-    ai_item = AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE)
+    ai_item = AiItemAsk(id=file_id, type=AiItemAskTypeField.FILE)
     try:
-        response: AiResponseFull = client.ai.create_ai_ask(
+        response: Optional[AiResponseFull] = client.ai.create_ai_ask(
             mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
         )
+        if response is None:
+            return {"message": "No response from Box AI"}
         return response.to_dict()
     except BoxAPIError as e:
         return {"error": e.message}
@@ -75,7 +81,7 @@ def box_ai_ask_file_multi(
     ai_agent = None
     if ai_agent_id is not None:
         ai_agent = AiAgentReference(
-            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
         )
 
     mode = CreateAiAskMode.MULTIPLE_ITEM_QA
@@ -84,9 +90,11 @@ def box_ai_ask_file_multi(
         ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
 
     try:
-        response: AiResponseFull = client.ai.create_ai_ask(
+        response: Optional[AiResponseFull] = client.ai.create_ai_ask(
             mode=mode, prompt=prompt, items=ai_items, ai_agent=ai_agent
         )
+        if response is None:
+            return {"message": "No response from Box AI"}
         return response.to_dict()
     except BoxAPIError as e:
         return {"error": e.message}
@@ -110,12 +118,12 @@ def box_ai_ask_hub(
     ai_agent = None
     if ai_agent_id is not None:
         ai_agent = AiAgentReference(
-            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
         )
     mode = CreateAiAskMode.SINGLE_ITEM_QA
-    ai_item = AiItemBase(id=hub_id, type=AiItemAskTypeField.HUBS)
+    ai_item = AiItemAsk(id=hub_id, type=AiItemAskTypeField.HUBS)
     try:
-        response: AiResponseFull = client.ai.create_ai_ask(
+        response: Optional[AiResponseFull] = client.ai.create_ai_ask(
             mode=mode, prompt=prompt, items=[ai_item], ai_agent=ai_agent
         )
         if response is None:
@@ -148,7 +156,7 @@ def box_ai_extract_freeform(
     ai_agent = None
     if ai_agent_id is not None:
         ai_agent = AiAgentReference(
-            AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
         )
     ai_items = []
     for file_id in file_ids:
@@ -156,6 +164,163 @@ def box_ai_extract_freeform(
     try:
         response: AiResponse = client.ai.create_ai_extract(
             prompt=prompt, items=ai_items, ai_agent=ai_agent
+        )
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
+def box_ai_extract_structured_using_fields(
+    client: BoxClient,
+    file_ids: List[str],
+    fields: List[dict[str, Any]],
+    ai_agent_id: Optional[str] = None,
+) -> dict:
+    """Extract information from one or more files using AI.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to extract information from, example: ["1234567890", "0987654321"].
+        fields (List[dict[str, str]]): The fields to extract in a structured format.
+                        example:[
+                                    {
+                                        "type": "string",
+                                        "key": "name",
+                                        "displayName": "Name",
+                                        "description": "Policyholder Name",
+                                    },
+                                    {
+                                        "type": "string",
+                                        "key": "number",
+                                        "displayName": "Number",
+                                        "description": "Policy Number",
+                                    },
+                                    {
+                                        "type": "date",
+                                        "key": "effectiveDate",
+                                        "displayName": "Effective Date",
+                                        "description": "Policy Effective Date",
+                                    },
+                                    {
+                                        "type": "enum",
+                                        "key": "paymentTerms",
+                                        "displayName": "Payment Terms",
+                                        "description": "Frequency of payment per year",
+                                        "options": [
+                                            {"key": "Monthly"},
+                                            {"key": "Quarterly"},
+                                            {"key": "Semiannual"},
+                                            {"key": "Annually"},
+                                        ],
+                                    },
+                                    {
+                                        "type": "multiSelect",
+                                        "key": "coverageTypes",
+                                        "displayName": "Coverage Types",
+                                        "description": "Types of coverage for the policy",
+                                        "prompt": "Look in the coverage type table and include all listed types.",
+                                        "options": [
+                                            {"key": "Body Injury Liability"},
+                                            {"key": "Property Damage Liability"},
+                                            {"key": "Personal Damage Liability"},
+                                            {"key": "Collision"},
+                                            {"key": "Comprehensive"},
+                                            {"key": "Uninsured Motorist"},
+                                            {"key": "Something that does not exist"},
+                                        ],
+                                    },
+                                ]
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the extraction. If None, the default AI agent will be used.
+    Returns:
+        dict: The AI response containing the extracted information.
+    """
+    if len(file_ids) == 0:
+        return {"error": "At least one file ID is required"}
+    if len(file_ids) >= 20:
+        return {"error": "No more than 20 files can be processed at once"}
+
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
+
+    # grab the fields from the dict and convert into List[CreateAiExtractStructuredFields]
+    # fields_list = fields.get("fields", [])
+    structured_fields = []
+    options = []
+    for field in fields:
+        field_options: Optional[List[Dict[str, Any]]] = field.get("options", None)
+        if field_options is not None:
+            for option in field_options:
+                key_value = option.get("key")
+                if key_value is not None:
+                    options.append(
+                        CreateAiExtractStructuredFieldsOptionsField(key=str(key_value))
+                    )
+
+        key_value = field.get("key")
+        if key_value is None:
+            return {"error": "Field key is required"}
+        structured_fields.append(
+            CreateAiExtractStructuredFields(
+                key=str(key_value),
+                description=field.get("description"),
+                display_name=field.get("displayName"),
+                prompt=field.get("prompt"),
+                type=field.get("type"),
+                options=options if options is not None and len(options) > 0 else None,
+            )
+        )
+
+    try:
+        response: AiExtractStructuredResponse = client.ai.create_ai_extract_structured(
+            items=ai_items, fields=structured_fields, ai_agent=ai_agent
+        )
+        return response.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
+def box_ai_extract_structured_using_template(
+    client: BoxClient,
+    file_ids: List[str],
+    template_key: str,
+    ai_agent_id: Optional[str] = None,
+) -> dict:
+    """Extract information from one or more files using AI with a metadata template.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to extract information from, example: ["1234567890", "0987654321"].
+        template_key (str): The key of the metadata template to use for the extraction.
+                            Example: "insurance_policy_template".
+        ai_agent_id (Optional[str]): The ID of the AI agent to use for the extraction. If None, the default AI agent will be used.
+    Returns:
+        dict: The AI response containing the extracted information.
+    """
+
+    if len(file_ids) == 0:
+        return {"error": "At least one file ID is required"}
+    if len(file_ids) >= 20:
+        return {"error": "No more than 20 files can be processed at once"}
+
+    ai_agent = None
+    if ai_agent_id is not None:
+        ai_agent = AiAgentReference(
+            type=AiAgentReferenceTypeField.AI_AGENT_ID, id=ai_agent_id
+        )
+    ai_items = []
+    for file_id in file_ids:
+        ai_items.append(AiItemBase(id=file_id, type=AiItemBaseTypeField.FILE))
+
+    metadata_template = CreateAiExtractStructuredMetadataTemplate(
+        template_key=template_key, scope="enterprise"
+    )
+    try:
+        response: AiExtractStructuredResponse = client.ai.create_ai_extract_structured(
+            items=ai_items, metadata_template=metadata_template, ai_agent=ai_agent
         )
         return response.to_dict()
     except BoxAPIError as e:
