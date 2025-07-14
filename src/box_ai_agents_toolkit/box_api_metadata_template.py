@@ -8,13 +8,40 @@ from typing import Any, Dict, List, Optional
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
+    CreateFileMetadataByIdScope,
+    CreateMetadataTemplateFields,
+    GetFileMetadataByIdScope,
     MetadataTemplate,
     MetadataTemplates,
     UpdateMetadataTemplateScope,
-    GetFileMetadataByIdScope,
-    CreateFileMetadataByIdScope,
-    CreateMetadataTemplateFields,
 )
+
+
+def _box_metadata_template_create(
+    client: BoxClient,
+    display_name: str,
+    fields: List[CreateMetadataTemplateFields] | None = None,
+    copy_instance_on_item_copy: bool | None = None,
+) -> MetadataTemplate:
+    """
+    Create a new metadata template definition in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        display_name (str): Human-readable name for the template.
+        fields (List[CreateMetadataTemplateFields], optional): List of field definitions.
+        copy_instance_on_item_copy (bool, optional): Whether to copy instances on item copy.
+
+    Returns:
+        MetadataTemplate: The created metadata template definition.
+    """
+    scope = "enterprise"  # Default scope, can be changed as needed
+    return client.metadata_templates.create_metadata_template(
+        scope=scope,
+        display_name=display_name,
+        fields=fields or [],
+        copy_instance_on_item_copy=copy_instance_on_item_copy or False,
+    )
 
 
 def box_metadata_template_create(
@@ -76,7 +103,6 @@ def box_metadata_template_create(
     Returns:
         MetadataTemplate: The created metadata template definition.
     """
-    scope = "enterprise"  # Default scope, can be changed as needed
     metadata_template_fields: List[CreateMetadataTemplateFields] = []
     for field in fields:
         metadata_template_fields.append(
@@ -92,13 +118,10 @@ def box_metadata_template_create(
             )
         )
     try:
-        response = client.metadata_templates.create_metadata_template(
-            scope=scope,
+        response = _box_metadata_template_create(
+            client=client,
             display_name=display_name,
-            template_key=template_key,
-            hidden=False,
             fields=metadata_template_fields,
-            copy_instance_on_item_copy=False,
         )
         return response.to_dict()
     except BoxAPIError as e:

@@ -7,7 +7,7 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     BoxClient,
     MetadataTemplate,
     MetadataTemplates,
-    box_metadata_template_create,
+    _box_metadata_template_create,
     _box_metadata_template_delete,
     _box_metadata_template_list,
     box_metadata_delete_instance_on_file,
@@ -73,7 +73,7 @@ def created_template(box_client_ccg: BoxClient, template_name: str):
     }
     fields.append(field_multiselect)
 
-    template = box_metadata_template_create(
+    template = _box_metadata_template_create(
         box_client_ccg, display_name=template_name, fields=fields
     )
 
