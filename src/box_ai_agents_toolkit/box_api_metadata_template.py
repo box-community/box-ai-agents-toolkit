@@ -32,6 +32,46 @@ def box_metadata_template_create(
         display_name (str): Human-readable name for the template.
         template_key (str, optional): Key to identify the template.
         fields (List[Dict], optional): List of field definitions.
+        Example:{"displayName": "Customer",
+                "fields": [
+                    {
+                    "type": "string",
+                    "key": "name",
+                    "displayName": "Name",
+                    "description": "The customer name",
+                    "hidden": false
+                    },
+                    {
+                    "type": "date",
+                    "key": "last_contacted_at",
+                    "displayName": "Last Contacted At",
+                    "description": "When this customer was last contacted at",
+                    "hidden": false
+                    },
+                    {
+                    "type": "enum",
+                    "key": "industry",
+                    "displayName": "Industry",
+                    "options": [
+                        {"key": "Technology"},
+                        {"key": "Healthcare"},
+                        {"key": "Legal"}
+                    ]
+                    },
+                    {
+                    "type": "multiSelect",
+                    "key": "role",
+                    "displayName": "Contact Role",
+                    "options": [
+                        {"key": "Developer"},
+                        {"key": "Business Owner"},
+                        {"key": "Marketing"},
+                        {"key": "Legal"},
+                        {"key": "Sales"}
+                    ]
+                    }
+                ]
+                }
 
     Returns:
         MetadataTemplate: The created metadata template definition.
