@@ -162,6 +162,7 @@ from .box_api_metadata_template import (  # noqa: E402
     box_metadata_template_get_by_key,  # noqa: F401
     box_metadata_template_get_by_name,  # noqa: F401
     box_metadata_update_instance_on_file,  # noqa: F401
+    box_metadata_template_create,  # noqa: F401
 )
 
 metadata_template = [
@@ -172,6 +173,7 @@ metadata_template = [
     "box_metadata_get_instance_on_file",
     "box_metadata_delete_instance_on_file",
     "box_metadata_update_instance_on_file",
+    "box_metadata_template_create",
 ]
 
 

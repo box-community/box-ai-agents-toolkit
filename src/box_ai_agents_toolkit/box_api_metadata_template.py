@@ -13,15 +13,16 @@ from box_sdk_gen import (
     UpdateMetadataTemplateScope,
     GetFileMetadataByIdScope,
     CreateFileMetadataByIdScope,
+    CreateMetadataTemplateFields,
 )
 
 
-def _box_metadata_template_create(
+def box_metadata_template_create(
     client: BoxClient,
     display_name: str,
+    fields: List[Dict[str, Any]],
     *,
     template_key: Optional[str] = None,
-    fields: List[Dict[str, Any]],
 ) -> MetadataTemplate:
     """
     Create a new metadata template definition in Box.
@@ -36,12 +37,26 @@ def _box_metadata_template_create(
         MetadataTemplate: The created metadata template definition.
     """
     scope = "enterprise"  # Default scope, can be changed as needed
+    metadata_template_fields: List[CreateMetadataTemplateFields] = []
+    for field in fields:
+        metadata_template_fields.append(
+            CreateMetadataTemplateFields(
+                key=field["key"],
+                name=field["name"],
+                type=field["type"],
+                display_name=field.get("display_name", field["name"]),
+                hidden=field.get("hidden", False),
+                required=field.get("required", False),
+                default_value=field.get("default_value"),
+                options=field.get("options"),
+            )
+        )
     return client.metadata_templates.create_metadata_template(
         scope=scope,
         display_name=display_name,
         template_key=template_key,
         hidden=False,
-        fields=fields,
+        fields=metadata_template_fields,
         copy_instance_on_item_copy=False,
     )
 

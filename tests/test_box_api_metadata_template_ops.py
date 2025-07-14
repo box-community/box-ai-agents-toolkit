@@ -7,7 +7,7 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     BoxClient,
     MetadataTemplate,
     MetadataTemplates,
-    _box_metadata_template_create,
+    box_metadata_template_create,
     _box_metadata_template_delete,
     _box_metadata_template_list,
     box_metadata_delete_instance_on_file,
@@ -73,7 +73,7 @@ def created_template(box_client_ccg: BoxClient, template_name: str):
     }
     fields.append(field_multiselect)
 
-    template = _box_metadata_template_create(
+    template = box_metadata_template_create(
         box_client_ccg, display_name=template_name, fields=fields
     )
 
@@ -100,18 +100,6 @@ def get_metadata() -> Dict[str, Any]:
         "enum_field": "option1",
         "multiselect_field": ["option1", "option2"],
     }
-
-
-def test_box_metadata_template_create(box_client_ccg: BoxClient, template_name: str):
-    """Test creating a metadata template."""
-
-    response: MetadataTemplate = _box_metadata_template_create(
-        box_client_ccg, display_name=template_name
-    )
-    assert response.display_name == template_name
-    assert response.template_key is not None
-    assert response.id is not None
-    _box_metadata_template_delete(box_client_ccg, template_key=response.template_key)
 
 
 def test_box_metadata_find_template_by_name(
