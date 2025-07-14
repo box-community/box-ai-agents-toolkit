@@ -31,6 +31,8 @@ from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
     box_ai_extract_freeform,  # noqa: F401
     box_ai_extract_structured_using_fields,  # noqa: F401
     box_ai_extract_structured_using_template,  # noqa: F401
+    box_ai_extract_structured_enhanced_using_fields,  # noqa: F401
+    box_ai_extract_structured_enhanced_using_template,  # noqa: F401
 )
 
 ai = [
@@ -40,6 +42,8 @@ ai = [
     "box_ai_extract_freeform",
     "box_ai_extract_structured_using_fields",
     "box_ai_extract_structured_using_template",
+    "box_ai_extract_structured_enhanced_using_fields",
+    "box_ai_extract_structured_enhanced_using_template",
 ]
 
 ai_deprecated = [

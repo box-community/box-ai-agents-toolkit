@@ -5,6 +5,8 @@ from box_ai_agents_toolkit import (
     box_ai_extract_freeform,
     box_ai_extract_structured_using_fields,
     box_ai_extract_structured_using_template,
+    box_ai_extract_structured_enhanced_using_fields,
+    box_ai_extract_structured_enhanced_using_template,
 )
 from box_sdk_gen import BoxClient
 
@@ -203,6 +205,57 @@ def test_box_ai_extract_structured_using_template(box_client_ccg: BoxClient):
     )
     assert isinstance(response, dict)
     assert "error" not in response
+    metadata = response.get("answer", {})
+
+    # check if fields exits in metadata
+    assert metadata.get("name") is not None
+    assert metadata.get("number") is not None
+    assert metadata.get("effectiveDate") is not None
+    assert metadata.get("paymentTerms") is not None
+
+
+def test_box_ai_extract_structured_enhanced_using_fields(box_client_ccg: BoxClient):
+    """Test the box_ai_extract_structured_enhanced_using_fields function."""
+    fields = [
+        {
+            "type": "string",
+            "key": "name",
+            "displayName": "Name",
+            "description": "Policyholder Name",
+        },
+        {
+            "type": "string",
+            "key": "number",
+            "displayName": "Number",
+            "description": "Policy Number",
+        },
+    ]
+
+    response = box_ai_extract_structured_enhanced_using_fields(
+        client=box_client_ccg,
+        file_ids=[FILE_A_ID],
+        fields=fields,
+    )
+    assert isinstance(response, dict)
+    assert "error" not in response
+    assert response["ai_agent_info"]["models"][0]["name"] == "google__gemini_2_5_pro"
+    metadata = response.get("answer", {})
+
+    # check if fields exits in metadata
+    assert metadata.get("name") is not None
+    assert metadata.get("number") is not None
+
+
+def test_box_ai_extract_structured_enhanced_using_template(box_client_ccg: BoxClient):
+    """Test the box_ai_extract_structured_enhanced_using_template function."""
+    response = box_ai_extract_structured_enhanced_using_template(
+        client=box_client_ccg,
+        file_ids=[FILE_A_ID],
+        template_key=TEMPLATE_KEY,
+    )
+    assert isinstance(response, dict)
+    assert "error" not in response
+    assert response["ai_agent_info"]["models"][0]["name"] == "google__gemini_2_5_pro"
     metadata = response.get("answer", {})
 
     # check if fields exits in metadata

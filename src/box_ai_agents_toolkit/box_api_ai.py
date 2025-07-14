@@ -284,6 +284,78 @@ def box_ai_extract_structured_using_fields(
         return {"error": e.message}
 
 
+def box_ai_extract_structured_enhanced_using_fields(
+    client: BoxClient,
+    file_ids: List[str],
+    fields: List[dict[str, Any]],
+) -> dict:
+    """Extract information from one or more files using AI.
+    This function is an enhanced version that uses a specific AI agent for structured extraction.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to extract information from, example: ["1234567890", "0987654321"].
+        fields (List[dict[str, str]]): The fields to extract in a structured format.
+                        example:[
+                                    {
+                                        "type": "string",
+                                        "key": "name",
+                                        "displayName": "Name",
+                                        "description": "Policyholder Name",
+                                    },
+                                    {
+                                        "type": "string",
+                                        "key": "number",
+                                        "displayName": "Number",
+                                        "description": "Policy Number",
+                                    },
+                                    {
+                                        "type": "date",
+                                        "key": "effectiveDate",
+                                        "displayName": "Effective Date",
+                                        "description": "Policy Effective Date",
+                                    },
+                                    {
+                                        "type": "enum",
+                                        "key": "paymentTerms",
+                                        "displayName": "Payment Terms",
+                                        "description": "Frequency of payment per year",
+                                        "options": [
+                                            {"key": "Monthly"},
+                                            {"key": "Quarterly"},
+                                            {"key": "Semiannual"},
+                                            {"key": "Annually"},
+                                        ],
+                                    },
+                                    {
+                                        "type": "multiSelect",
+                                        "key": "coverageTypes",
+                                        "displayName": "Coverage Types",
+                                        "description": "Types of coverage for the policy",
+                                        "prompt": "Look in the coverage type table and include all listed types.",
+                                        "options": [
+                                            {"key": "Body Injury Liability"},
+                                            {"key": "Property Damage Liability"},
+                                            {"key": "Personal Damage Liability"},
+                                            {"key": "Collision"},
+                                            {"key": "Comprehensive"},
+                                            {"key": "Uninsured Motorist"},
+                                            {"key": "Something that does not exist"},
+                                        ],
+                                    },
+                                ]
+    Returns:
+        dict: The AI response containing the extracted information.
+    """
+    ai_agent_id = "enhanced_extract_agent"
+
+    return box_ai_extract_structured_using_fields(
+        client=client,
+        file_ids=file_ids,
+        fields=fields,
+        ai_agent_id=ai_agent_id,
+    )
+
+
 def box_ai_extract_structured_using_template(
     client: BoxClient,
     file_ids: List[str],
@@ -325,3 +397,29 @@ def box_ai_extract_structured_using_template(
         return response.to_dict()
     except BoxAPIError as e:
         return {"error": e.message}
+
+
+def box_ai_extract_structured_enhanced_using_template(
+    client: BoxClient,
+    file_ids: List[str],
+    template_key: str,
+) -> dict:
+    """Extract information from one or more files using AI with a metadata template.
+    This function is an enhanced version that uses a specific AI agent for structured extraction.
+    Args:
+        client (BoxClient): The Box client instance.
+        file_ids (List[str]): A list of file IDs to extract information from, example: ["1234567890", "0987654321"].
+        template_key (str): The key of the metadata template to use for the extraction.
+                            Example: "insurance_policy_template".
+    Returns:
+        dict: The AI response containing the extracted information.
+    """
+
+    ai_agent_id = "enhanced_extract_agent"
+
+    return box_ai_extract_structured_using_template(
+        client=client,
+        file_ids=file_ids,
+        template_key=template_key,
+        ai_agent_id=ai_agent_id,
+    )
