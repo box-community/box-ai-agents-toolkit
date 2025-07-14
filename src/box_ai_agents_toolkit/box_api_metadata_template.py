@@ -11,30 +11,26 @@ from box_sdk_gen import (
     MetadataTemplate,
     MetadataTemplates,
     UpdateMetadataTemplateScope,
+    GetFileMetadataByIdScope,
+    CreateFileMetadataByIdScope,
 )
 
 
 def _box_metadata_template_create(
     client: BoxClient,
-    # scope: str,
     display_name: str,
     *,
     template_key: Optional[str] = None,
-    # hidden: Optional[bool] = False,
-    fields: Optional[List[Dict[str, Any]]] = None,
-    # copy_instance_on_item_copy: Optional[bool] = False,
+    fields: List[Dict[str, Any]],
 ) -> MetadataTemplate:
     """
     Create a new metadata template definition in Box.
 
     Args:
         client (BoxClient): An authenticated Box client.
-        # scope (str): The scope of the template ("enterprise" or "global").
         display_name (str): Human-readable name for the template.
         template_key (str, optional): Key to identify the template.
-        # hidden (bool, optional): Whether the template is hidden.
         fields (List[Dict], optional): List of field definitions.
-        # copy_instance_on_item_copy (bool, optional): Cascade policy for instances.
 
     Returns:
         MetadataTemplate: The created metadata template definition.
@@ -187,7 +183,7 @@ def box_metadata_set_instance_on_file(
     try:
         resp = client.file_metadata.create_file_metadata_by_id(
             file_id=file_id,
-            scope="enterprise",
+            scope=CreateFileMetadataByIdScope(GetFileMetadataByIdScope.ENTERPRISE),
             template_key=template_key,
             request_body=metadata,
         )
@@ -214,7 +210,9 @@ def box_metadata_get_instance_on_file(
     """
     try:
         resp = client.file_metadata.get_file_metadata_by_id(
-            file_id=file_id, scope="enterprise", template_key=template_key
+            file_id=file_id,
+            scope=GetFileMetadataByIdScope.ENTERPRISE,
+            template_key=template_key,
         )
         return resp.to_dict()
     except BoxAPIError as e:

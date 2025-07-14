@@ -1,34 +1,22 @@
-from typing import Dict, Iterable, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from box_sdk_gen import (
-    BoxAPIError,
-    AiAgentAsk,
+    AiAgentReference,
+    AiAgentReferenceTypeField,
+    AiExtractStructuredResponse,
     AiItemAsk,
-    AiAgentAskTypeField,
-    AiAgentBasicTextTool,
-    AiAgentExtract,
-    AiAgentExtractTypeField,
-    AiAgentLongTextTool,
-    AiExtractResponse,
     AiItemAskTypeField,
     AiItemBase,
     AiItemBaseTypeField,
     AiResponse,
     AiResponseFull,
+    BoxAPIError,
     BoxClient,
     CreateAiAskMode,
     CreateAiExtractStructuredFields,
     CreateAiExtractStructuredFieldsOptionsField,
-    AiAgentReference,
-    AiAgentReferenceTypeField,
-    CreateAiExtractStructuredFields,
-    CreateAiExtractStructuredFieldsOptionsField,
-    AiExtractStructuredResponse,
     CreateAiExtractStructuredMetadataTemplate,
 )
-
-from box_ai_agents_toolkit.box_api_file import box_file_get_by_id
-from box_ai_agents_toolkit.box_api_util_classes import BoxFileExtended
 
 
 def box_ai_ask_file_single(

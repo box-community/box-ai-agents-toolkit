@@ -1,14 +1,15 @@
+from box_sdk_gen import BoxClient
+
 from box_ai_agents_toolkit import (
-    box_ai_ask_file_single,
     box_ai_ask_file_multi,
+    box_ai_ask_file_single,
     box_ai_ask_hub,
     box_ai_extract_freeform,
-    box_ai_extract_structured_using_fields,
-    box_ai_extract_structured_using_template,
     box_ai_extract_structured_enhanced_using_fields,
     box_ai_extract_structured_enhanced_using_template,
+    box_ai_extract_structured_using_fields,
+    box_ai_extract_structured_using_template,
 )
-from box_sdk_gen import BoxClient
 
 FILE_A_ID = "1918161198980"  # Policy
 FILE_B_ID = "1918164583027"  # Claim

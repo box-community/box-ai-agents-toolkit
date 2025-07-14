@@ -2,6 +2,7 @@
 Wrapper functions for Box Doc Gen (document generation) APIs.
 See: https://developer.box.com/reference/v2025.0/
 """
+
 from typing import Any, Dict, List, Optional, Union
 
 from box_sdk_gen import (
@@ -110,10 +111,16 @@ def box_docgen_create_batch(
     dest_folder = CreateDocgenBatchV2025R0DestinationFolder(id=destination_folder_id)
     data_items: List[DocGenDocumentGenerationDataV2025R0] = []
     for item in document_generation_data:
+        generated_file_name = item.get("generated_file_name")
+        if not isinstance(generated_file_name, str):
+            raise ValueError("generated_file_name must be a string and cannot be None")
+        user_input = item.get("user_input")
+        if not isinstance(user_input, dict):
+            raise ValueError("user_input must be a dict and cannot be None")
         data_items.append(
             DocGenDocumentGenerationDataV2025R0(
-                generated_file_name=item.get("generated_file_name"),
-                user_input=item.get("user_input"),
+                generated_file_name=generated_file_name,
+                user_input=user_input,
             )
         )
     return client.docgen.create_docgen_batch_v2025_r0(
@@ -123,7 +130,8 @@ def box_docgen_create_batch(
         output_type=output_type,
         document_generation_data=data_items,
     )
-  
+
+
 def box_docgen_create_batch_from_user_input(
     client: BoxClient,
     file_id: str,

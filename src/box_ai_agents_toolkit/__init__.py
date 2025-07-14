@@ -9,34 +9,49 @@ from box_sdk_gen import (
 sdk = ["BoxClient", "BoxSDKError", "File", "Folder", "SearchForContentContentTypes"]
 
 
-from box_ai_agents_toolkit.box_api_ai_deprecated import (  # noqa: E402
-    box_claude_ai_agent_ask,  # noqa: F401
-    box_claude_ai_agent_extract,  # noqa: F401
-    box_file_ai_ask,  # noqa: F401
-    box_file_ai_extract,  # noqa: F401
-    box_file_ai_extract_structured,  # noqa: F401
-    box_folder_ai_ask,  # noqa: F401
-    box_folder_ai_extract,  # noqa: F401
-    box_folder_ai_extract_structured,  # noqa: F401
-    box_hubs_ai_ask,  # noqa: F401
-    box_multi_file_ai_ask,  # noqa: F401
-    box_multi_file_ai_extract,  # noqa: F401
-    box_multi_file_ai_extract_structured,  # noqa: F401
-)
+# from box_ai_agents_toolkit.box_api_ai_deprecated import (  # noqa: E402
+#     box_claude_ai_agent_ask,  # noqa: F401
+#     box_claude_ai_agent_extract,  # noqa: F401
+#     box_file_ai_ask,  # noqa: F401
+#     box_file_ai_extract,  # noqa: F401
+#     box_file_ai_extract_structured,  # noqa: F401
+#     box_folder_ai_ask,  # noqa: F401
+#     box_folder_ai_extract,  # noqa: F401
+#     box_folder_ai_extract_structured,  # noqa: F401
+#     box_hubs_ai_ask,  # noqa: F401
+#     box_multi_file_ai_ask,  # noqa: F401
+#     box_multi_file_ai_extract,  # noqa: F401
+#     box_multi_file_ai_extract_structured,  # noqa: F401
+# )
+
+# ai_deprecated = [
+#     "box_file_ai_ask",
+#     "box_file_ai_extract",
+#     "box_file_ai_extract_structured",
+#     "box_claude_ai_agent_ask",
+#     "box_claude_ai_agent_extract",
+#     "box_folder_ai_ask",
+#     "box_folder_ai_extract",
+#     "box_folder_ai_extract_structured",
+#     "box_hubs_ai_ask",
+#     "box_multi_file_ai_ask",
+#     "box_multi_file_ai_extract",
+#     "box_multi_file_ai_extract_structured",
+# ]
 
 from box_ai_agents_toolkit.box_api_ai import (  # noqa: E402
-    box_ai_ask_file_single,  # noqa: F401
     box_ai_ask_file_multi,  # noqa: F401
+    box_ai_ask_file_single,  # noqa: F401
     box_ai_ask_hub,  # noqa: F401
     box_ai_extract_freeform,  # noqa: F401
-    box_ai_extract_structured_using_fields,  # noqa: F401
-    box_ai_extract_structured_using_template,  # noqa: F401
     box_ai_extract_structured_enhanced_using_fields,  # noqa: F401
     box_ai_extract_structured_enhanced_using_template,  # noqa: F401
+    box_ai_extract_structured_using_fields,  # noqa: F401
+    box_ai_extract_structured_using_template,  # noqa: F401
 )
 
 ai = [
-    "box_ai_ask_file",
+    "box_ai_ask_file_single",
     "box_ai_ask_file_multi",
     "box_ai_ask_hub",
     "box_ai_extract_freeform",
@@ -46,20 +61,6 @@ ai = [
     "box_ai_extract_structured_enhanced_using_template",
 ]
 
-ai_deprecated = [
-    "box_file_ai_ask",
-    "box_file_ai_extract",
-    "box_file_ai_extract_structured",
-    "box_claude_ai_agent_ask",
-    "box_claude_ai_agent_extract",
-    "box_folder_ai_ask",
-    "box_folder_ai_extract",
-    "box_folder_ai_extract_structured",
-    "box_hubs_ai_ask",
-    "box_multi_file_ai_ask",
-    "box_multi_file_ai_extract",
-    "box_multi_file_ai_extract_structured",
-]
 
 from box_ai_agents_toolkit.box_api_file import (  # noqa: E402
     box_file_download,  # noqa: F401
@@ -175,18 +176,14 @@ metadata_template = [
 
 
 __all__ = []
-
-__all__.extend(sdk)
-__all__.extend(ai_deprecated)
-__all__.extend(ai)
-__all__.extend(file)
-__all__.extend(folder)
-__all__.extend(search)
-__all__.extend(auth)
-__all__.extend(docgen)
-__all__.extend(docgen_template)
-__all__.extend(metadata_template)
-__all__.extend(util_classes)
-__all__.extend(docgen)
-__all__.extend(docgen_template)
-__all__.extend(metadata_template)
+__all__.extend(sdk)  # type: ignore
+# __all__.extend(ai_deprecated)  # type: ignore
+__all__.extend(ai)  # type: ignore
+__all__.extend(file)  # type: ignore
+__all__.extend(folder)  # type: ignore
+__all__.extend(search)  # type: ignore
+__all__.extend(auth)  # type: ignore
+__all__.extend(docgen)  # type: ignore
+__all__.extend(docgen_template)  # type: ignore
+__all__.extend(metadata_template)  # type: ignore
+__all__.extend(util_classes)  # type: ignore
