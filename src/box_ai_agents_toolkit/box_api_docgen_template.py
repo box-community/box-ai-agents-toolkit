@@ -3,14 +3,13 @@ Wrapper functions for Box Doc Gen Template APIs.
 See: https://developer.box.com/reference/v2025.0/
 """
 
-from typing import Optional
+from typing import Any, Optional
 
 from box_sdk_gen import (
+    BoxAPIError,
     BoxClient,
     DocGenJobsV2025R0,
     DocGenTagsV2025R0,
-    DocGenTemplateBaseV2025R0,
-    DocGenTemplatesV2025R0,
     DocGenTemplateV2025R0,
     FileReferenceV2025R0,
 )
@@ -19,7 +18,7 @@ from box_sdk_gen import (
 def box_docgen_template_create(
     client: BoxClient,
     file_id: str,
-) -> DocGenTemplateBaseV2025R0:
+) -> dict[str, Any]:
     """
     Mark a file as a Box Doc Gen template.
 
@@ -28,17 +27,22 @@ def box_docgen_template_create(
         file_id (str): ID of the file to mark as template.
 
     Returns:
-        DocGenTemplateBaseV2025R0: Metadata of the created template.
+        dict[str, Any]: Metadata of the created template.
     """
-    file_ref = FileReferenceV2025R0(id=file_id)
-    return client.docgen_template.create_docgen_template_v2025_r0(file_ref)
+    try:
+        docgen_template = client.docgen_template.create_docgen_template_v2025_r0(
+            FileReferenceV2025R0(id=file_id)
+        )
+        return docgen_template.to_dict()
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
 def box_docgen_template_list(
     client: BoxClient,
     marker: Optional[str] = None,
     limit: Optional[int] = None,
-) -> DocGenTemplatesV2025R0:
+) -> dict[str, Any] | list[dict[str, Any]]:
     """
     List all Box Doc Gen templates accessible to the user.
 
@@ -48,11 +52,23 @@ def box_docgen_template_list(
         limit (int, optional): Max items per page.
 
     Returns:
-        DocGenTemplatesV2025R0: A page of template entries.
+        dict[str, Any] | list[dict[str, Any]]: A list of template metadata or an error message.
     """
-    return client.docgen_template.get_docgen_templates_v2025_r0(
-        marker=marker, limit=limit
-    )
+    try:
+        template_list = client.docgen_template.get_docgen_templates_v2025_r0(
+            marker=marker, limit=limit
+        )
+        if template_list.entries is None:
+            return {"message": "No templates found."}
+
+        # Convert entries to a list of dictionaries
+        return_list = [
+            template_list.entries[i].to_dict()
+            for i in range(len(template_list.entries))
+        ]
+        return return_list
+    except BoxAPIError as e:
+        return {"error": e.message}
 
 
 def box_docgen_template_delete(
