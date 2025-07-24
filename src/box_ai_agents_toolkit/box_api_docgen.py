@@ -10,9 +10,6 @@ from box_sdk_gen import (
     BoxClient,
     CreateDocgenBatchV2025R0DestinationFolder,
     DocGenDocumentGenerationDataV2025R0,
-    DocGenJobsFullV2025R0,
-    DocGenJobsV2025R0,
-    DocGenJobV2025R0,
     FileReferenceV2025R0,
 )
 
