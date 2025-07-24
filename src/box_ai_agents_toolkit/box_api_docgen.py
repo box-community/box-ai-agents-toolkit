@@ -6,8 +6,8 @@ See: https://developer.box.com/reference/v2025.0/
 from typing import Any, Dict, List, Optional
 
 from box_sdk_gen import (
-    BoxClient,
     BoxAPIError,
+    BoxClient,
     CreateDocgenBatchV2025R0DestinationFolder,
     DocGenDocumentGenerationDataV2025R0,
     DocGenJobsFullV2025R0,
