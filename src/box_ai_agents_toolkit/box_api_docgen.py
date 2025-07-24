@@ -152,53 +152,12 @@ def box_docgen_create_single_file_from_user_input(
     )
 
 
-def box_docgen_get_job_by_id(
-    client: BoxClient,
-    job_id: str,
-    marker: Optional[str] = None,
-    limit: Optional[int] = None,
-) -> DocGenJobV2025R0:
-    """
-    Retrieve a Box Doc Gen job by its ID.
-
-    Args:
-        client (BoxClient): Authenticated Box client.
-        job_id (str): ID of the Doc Gen job.
-        marker (str, optional): Pagination marker (unused for single job).
-        limit (int, optional): Pagination limit (unused for single job).
-
-    Returns:
-        DocGenJobV2025R0: Details of the specified Doc Gen job.
-    """
-    # marker and limit are not used for this endpoint, but included for signature consistency
-    return client.docgen.get_docgen_job_by_id_v2025_r0(job_id)
-
-
-def box_docgen_list_jobs(
-    client: BoxClient,
-    marker: Optional[str] = None,
-    limit: Optional[int] = None,
-) -> DocGenJobsFullV2025R0:
-    """
-    List all Box Doc Gen jobs for the current user.
-
-    Args:
-        client (BoxClient): Authenticated Box client.
-        marker (str, optional): Pagination marker.
-        limit (int, optional): Maximum number of items to return.
-
-    Returns:
-        DocGenJobsFullV2025R0: A page of Doc Gen job entries.
-    """
-    return client.docgen.get_docgen_jobs_v2025_r0(marker=marker, limit=limit)
-
-
 def box_docgen_list_jobs_by_batch(
     client: BoxClient,
     batch_id: str,
     marker: Optional[str] = None,
     limit: Optional[int] = None,
-) -> DocGenJobsV2025R0:
+) -> list[dict[str, Any]]:
     """
     List Doc Gen jobs in a specific batch.
 
@@ -209,8 +168,71 @@ def box_docgen_list_jobs_by_batch(
         limit (int, optional): Maximum number of items to return.
 
     Returns:
-        DocGenJobsV2025R0: A list of Doc Gen jobs in the batch.
+        list[dict[str, Any]]: A list of Doc Gen jobs in the batch.
     """
-    return client.docgen.get_docgen_batch_job_by_id_v2025_r0(
-        batch_id=batch_id, marker=marker, limit=limit
-    )
+    try:
+        docgen_batch_jobs_list = client.docgen.get_docgen_batch_job_by_id_v2025_r0(
+            batch_id=batch_id, marker=marker, limit=limit
+        )
+        docgen_batch_jobs = (
+            [job.to_dict() for job in docgen_batch_jobs_list.entries]
+            if docgen_batch_jobs_list.entries
+            else []
+        )
+        if len(docgen_batch_jobs) == 0:
+            return [{"message": "No jobs found in the specified batch."}]
+        return docgen_batch_jobs
+    except BoxAPIError as e:
+        return [{"error": e.message}]
+
+
+def box_docgen_get_job_by_id(
+    client: BoxClient,
+    job_id: str,
+) -> dict[str, Any]:
+    """
+    Retrieve a Box Doc Gen job by its ID.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        job_id (str): ID of the Doc Gen job.
+
+    Returns:
+        dict[str, Any]: Details of the specified Doc Gen job.
+    """
+    # marker and limit are not used for this endpoint, but included for signature consistency
+    try:
+        docgen_job = client.docgen.get_docgen_job_by_id_v2025_r0(job_id)
+        return docgen_job.to_dict() if docgen_job else {"error": "Job not found."}
+    except BoxAPIError as e:
+        return {"error": f"Failed to retrieve job: {e.message}"}
+
+
+def box_docgen_list_jobs(
+    client: BoxClient,
+    marker: Optional[str] = None,
+    limit: Optional[int] = None,
+) -> list[dict[str, Any]]:
+    """
+    List all Box Doc Gen jobs for the current user.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        marker (str, optional): Pagination marker.
+        limit (int, optional): Maximum number of items to return.
+
+    Returns:
+        list[dict[str, Any]]: A list of Doc Gen jobs.
+    """
+    try:
+        docgen_jobs_list = client.docgen.get_docgen_jobs_v2025_r0(
+            marker=marker, limit=limit
+        )
+        docgen_jobs = (
+            [job.to_dict() for job in docgen_jobs_list.entries]
+            if docgen_jobs_list.entries
+            else []
+        )
+        return docgen_jobs if docgen_jobs else [{"message": "No jobs found."}]
+    except BoxAPIError as e:
+        return [{"error": e.message}]
