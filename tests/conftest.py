@@ -1,17 +1,17 @@
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-import time
 
 import pytest
 from box_sdk_gen import (
     CreateFolderParent,
     File,
+    FileReferenceV2025R0,
     Folder,
     UploadFileAttributes,
     UploadFileAttributesParentField,
-    FileReferenceV2025R0,
 )
 from dotenv import load_dotenv
 
