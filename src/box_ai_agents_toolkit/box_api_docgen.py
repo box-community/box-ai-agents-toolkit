@@ -3,18 +3,153 @@ Wrapper functions for Box Doc Gen (document generation) APIs.
 See: https://developer.box.com/reference/v2025.0/
 """
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from box_sdk_gen import (
     BoxClient,
+    BoxAPIError,
     CreateDocgenBatchV2025R0DestinationFolder,
-    DocGenBatchBaseV2025R0,
     DocGenDocumentGenerationDataV2025R0,
     DocGenJobsFullV2025R0,
     DocGenJobsV2025R0,
     DocGenJobV2025R0,
     FileReferenceV2025R0,
 )
+
+
+def box_docgen_create_batch(
+    client: BoxClient,
+    docgen_template_id: str,
+    destination_folder_id: str,
+    document_generation_data: List[Dict[str, Any]],
+    output_type: str = "pdf",
+) -> dict[str, Any]:
+    """
+    Create a new Box Doc Gen batch to generate documents from a template.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        docgen_template_id (str): ID of the Doc Gen template.
+        destination_folder_id (str): ID of the folder to save the generated document.
+        document_generation_data (List[Dict[str, Any]]): Data for document generation.
+        example:
+            [
+                {
+                    "generated_file_name": "Image test",
+                    "user_input": {
+                        "order": {
+                            "id": "12305",
+                            "date": "18-08-2023",
+                            "products": [
+                                {
+                                    "id": 1,
+                                    "name": "A4 Papers",
+                                    "type": "non-fragile",
+                                    "quantity": 100,
+                                    "price": 29,
+                                    "amount": 2900
+                                },
+                            ]
+                        }
+                    }
+                },
+            ]
+        output_type (str): Output file type (only, "pdf" or "docx").
+
+    Returns:
+        dict[str, Any]: Response containing batch creation status and details.
+        If successful, contains a message with batch ID.
+        If an error occurs, contains an "error" key with the error message.
+    """
+    # Prepare SDK model instances
+    file_ref = FileReferenceV2025R0(id=docgen_template_id)
+    dest_folder = CreateDocgenBatchV2025R0DestinationFolder(id=destination_folder_id)
+    data_items: List[DocGenDocumentGenerationDataV2025R0] = []
+    for item in document_generation_data:
+        generated_file_name = item.get("generated_file_name")
+        if not isinstance(generated_file_name, str):
+            return {"error": "generated_file_name must be a string and cannot be None"}
+        user_input = item.get("user_input")
+        if not isinstance(user_input, dict):
+            return {"error": "user_input must be a dict and cannot be None"}
+        data_items.append(
+            DocGenDocumentGenerationDataV2025R0(
+                generated_file_name=generated_file_name,
+                user_input=user_input,
+            )
+        )
+    try:
+        docgen_batch = client.docgen.create_docgen_batch_v2025_r0(
+            file=file_ref,
+            input_source="api",
+            destination_folder=dest_folder,
+            output_type=output_type,
+            document_generation_data=data_items,
+        )
+        return {"message": f"Batch created successfully with id {docgen_batch.id}"}
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
+def box_docgen_create_single_file_from_user_input(
+    client: BoxClient,
+    docgen_template_id: str,
+    destination_folder_id: str,
+    user_input: dict[str, Any],
+    generated_file_name: Optional[str] = None,
+    output_type: str = "pdf",
+) -> dict[str, Any]:
+    """
+    Create a single document from a Doc Gen template using user input.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        docgen_template_id (str): ID of the Doc Gen template.
+        destination_folder_id (str): ID of the folder to save the generated document.
+        user_input (dict[str, Any]): User input data for document generation.
+        example:
+        example:
+            {
+                "user_input": {
+                    "order": {
+                        "id": "12305",
+                        "date": "18-08-2023",
+                        "products": [
+                            {
+                                "id": 1,
+                                "name": "A4 Papers",
+                                "type": "non-fragile",
+                                "quantity": 100,
+                                "price": 29,
+                                "amount": 2900
+                            },
+                        ]
+                    }
+                }
+            }
+        generated_file_name (Optional[str]): Name for the generated document file.
+        output_type (str): Output file type (only, "pdf" or "docx").
+
+    Returns:
+        dict[str, Any]: Information about the created batch job.
+    """
+
+    # Default generated file name
+    try:
+        docgen_template_file = client.files.get_file_by_id(docgen_template_id)
+    except BoxAPIError as e:
+        return {"error": f"Failed to retrieve template file: {e.message}"}
+
+    gen_name = generated_file_name or docgen_template_file.name
+
+    doc_data_list = [{"generated_file_name": gen_name, "user_input": user_input}]
+    return box_docgen_create_batch(
+        client=client,
+        docgen_template_id=docgen_template_id,
+        destination_folder_id=destination_folder_id,
+        output_type=output_type,
+        document_generation_data=doc_data_list,
+    )
 
 
 def box_docgen_get_job_by_id(
@@ -78,154 +213,4 @@ def box_docgen_list_jobs_by_batch(
     """
     return client.docgen.get_docgen_batch_job_by_id_v2025_r0(
         batch_id=batch_id, marker=marker, limit=limit
-    )
-
-
-def box_docgen_create_batch(
-    client: BoxClient,
-    file_id: str,
-    input_source: str,
-    destination_folder_id: str,
-    output_type: str,
-    document_generation_data: List[Dict[str, Any]],
-) -> DocGenBatchBaseV2025R0:
-    """
-    Create a new Box Doc Gen batch to generate documents from a template.
-
-    Args:
-        client (BoxClient): Authenticated Box client.
-        file_id (str): ID of the file (template) to use.
-        input_source (str): Source of input (e.g., "api").
-        destination_folder_id (str): ID of the folder to save generated docs.
-        output_type (str): Desired output file type (e.g., "pdf").
-        document_generation_data (List[Dict]):
-            List of dicts with keys:
-                - "generated_file_name" (str)
-                - "user_input" (Dict[str, Any])
-
-    Returns:
-        DocGenBatchBaseV2025R0: Information about the created batch job.
-    """
-    # Prepare SDK model instances
-    file_ref = FileReferenceV2025R0(id=file_id)
-    dest_folder = CreateDocgenBatchV2025R0DestinationFolder(id=destination_folder_id)
-    data_items: List[DocGenDocumentGenerationDataV2025R0] = []
-    for item in document_generation_data:
-        generated_file_name = item.get("generated_file_name")
-        if not isinstance(generated_file_name, str):
-            raise ValueError("generated_file_name must be a string and cannot be None")
-        user_input = item.get("user_input")
-        if not isinstance(user_input, dict):
-            raise ValueError("user_input must be a dict and cannot be None")
-        data_items.append(
-            DocGenDocumentGenerationDataV2025R0(
-                generated_file_name=generated_file_name,
-                user_input=user_input,
-            )
-        )
-    return client.docgen.create_docgen_batch_v2025_r0(
-        file=file_ref,
-        input_source=input_source,
-        destination_folder=dest_folder,
-        output_type=output_type,
-        document_generation_data=data_items,
-    )
-
-
-def box_docgen_create_batch_from_user_input(
-    client: BoxClient,
-    file_id: str,
-    destination_folder_id: str,
-    user_input: Union[str, Dict[str, Any], List[Dict[str, Any]]],
-    generated_file_name: Optional[str] = None,
-    output_type: str = "pdf",
-) -> DocGenBatchBaseV2025R0:
-    """
-    Parse a raw user_input string (JSON or key-value pairs) into the required
-    document_generation_data list and invoke box_docgen_create_batch.
-
-    Args:
-        client (BoxClient): Authenticated Box client.
-        file_id (str): ID of the template file in Box.
-        destination_folder_id (str): ID of the folder to save generated docs.
-        user_input (str): JSON string or key-value pairs (e.g. 'key1: val1, key2: val2').
-        generated_file_name (str, optional): Base name for generated documents.
-            Defaults to 'DocGen Output' if None.
-        output_type (str): Output file type (e.g. 'pdf').
-
-    Returns:
-        DocGenBatchBaseV2025R0: Information about the created batch job.
-    """
-    import json
-    import re
-
-    # Default generated file name
-    gen_name = generated_file_name or "DocGen Output"
-    # If user_input already provided as dict or list, build document_generation_data directly
-    if isinstance(user_input, dict):
-        doc_data_list = [{"generated_file_name": gen_name, "user_input": user_input}]
-        return box_docgen_create_batch(
-            client=client,
-            file_id=file_id,
-            input_source="api",
-            destination_folder_id=destination_folder_id,
-            output_type=output_type,
-            document_generation_data=doc_data_list,
-        )
-    if isinstance(user_input, list):
-        doc_data_list = []
-        for item in user_input:
-            if not isinstance(item, dict):
-                raise ValueError("List items in user_input must be dicts")
-            doc_data_list.append({"generated_file_name": gen_name, "user_input": item})
-        return box_docgen_create_batch(
-            client=client,
-            file_id=file_id,
-            input_source="api",
-            destination_folder_id=destination_folder_id,
-            output_type=output_type,
-            document_generation_data=doc_data_list,
-        )
-
-    # Attempt JSON parsing first
-    try:
-        parsed = json.loads(user_input)
-        if isinstance(parsed, list):
-            doc_data_list = parsed
-        elif isinstance(parsed, dict):
-            doc_data_list = [{"generated_file_name": gen_name, "user_input": parsed}]
-        else:
-            raise ValueError("Parsed JSON is not a list or dict")
-    except json.JSONDecodeError:
-        # Fallback: parse key-value pairs
-        kv: Dict[str, Any] = {}
-        # split on commas, semicolons, or newlines
-        parts = re.split(r"[;,\n]+", user_input)
-        for part in parts:
-            if ":" in part:
-                key, val = part.split(":", 1)
-            elif "=" in part:
-                key, val = part.split("=", 1)
-            elif " - " in part:
-                key, val = part.split(" - ", 1)
-            else:
-                continue
-            k = key.strip().lower().replace(" ", "_")
-            v = val.strip()
-            if k and v:
-                kv[k] = v
-        if not kv:
-            raise ValueError(
-                f"Invalid user_input format: '{user_input}'. Provide JSON or key-value pairs."
-            )
-        doc_data_list = [{"generated_file_name": gen_name, "user_input": kv}]
-
-    # Delegate to core batch creation
-    return box_docgen_create_batch(
-        client=client,
-        file_id=file_id,
-        input_source="api",
-        destination_folder_id=destination_folder_id,
-        output_type=output_type,
-        document_generation_data=doc_data_list,
     )
