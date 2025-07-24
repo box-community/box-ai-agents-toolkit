@@ -4,23 +4,26 @@ from box_sdk_gen import BoxClient
 from box_ai_agents_toolkit import (
     box_docgen_template_create,
     box_docgen_template_list,
+    box_docgen_template_get_by_id,
+    box_docgen_template_delete,
+    box_docgen_template_list_tags,
 )
 
 from .conftest import DocGenTestData
 
 
 def test_box_docgen_template_create(
-    box_client_ccg: BoxClient, docgen_test_data: DocGenTestData
+    box_client_ccg: BoxClient, docgen_test_files: DocGenTestData
 ):
     """
     Test creating a Box Doc Gen template.
     """
     # Ensure we have a test file to work with
-    if not docgen_test_data.docgen_test_files:
+    if not docgen_test_files.docgen_test_files:
         pytest.skip("No test files available for Doc Gen template creation.")
 
     # Use the first test file
-    file_id = docgen_test_data.docgen_test_files[0].id
+    file_id = docgen_test_files.docgen_test_files[0].id
 
     # Create the Doc Gen template
     template = box_docgen_template_create(box_client_ccg, file_id)
@@ -46,16 +49,102 @@ def test_box_docgen_template_create(
     error_response = box_docgen_template_create(box_client_ccg, invalid_file_id)
     assert "error" in error_response, "Expected an error response for invalid file ID."
 
+
+def test_box_docgen_template_list(
+    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+):
     # Check the list of templates to ensure the created template is listed
     templates = box_docgen_template_list(box_client_ccg)
     assert isinstance(templates, list), "Templates should be returned as a list."
     assert len(templates) > 0, "Template list should not be empty."
 
-    # Check if each file in the test data exists in the template list
-    file_ids = {file.id for file in docgen_test_data.docgen_test_files}
-    for template in templates:
-        assert "file" in template, "Template entry should contain file metadata."
-        assert "id" in template["file"], "Template file metadata should contain an ID."
-        assert template["file"]["id"] in file_ids, (
-            f"Template file ID {template['file']['id']} not found in test data files."
-        )
+    # Check if the test templates exist in the returned list
+    assert isinstance(docgen_test_templates.docgen_test_files, list), (
+        "Test files should be a list."
+    )
+
+    assert docgen_test_templates.docgen_test_files[0].id in [
+        template["file"]["id"] for template in templates
+    ], "Test template file ID should be in the list of templates."
+
+
+def test_box_docgen_template_get_by_id(
+    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+):
+    """
+    Test retrieving a Box Doc Gen template by ID.
+    """
+    if not docgen_test_templates.docgen_test_files:
+        pytest.skip("No test files available for Doc Gen template retrieval.")
+
+    # Use the first test file's ID
+    file_id = docgen_test_templates.docgen_test_files[0].id
+
+    # Retrieve the template by ID
+    template = box_docgen_template_get_by_id(box_client_ccg, file_id)
+
+    # Check if the retrieval was successful
+    assert "error" not in template, (
+        f"Error retrieving Doc Gen template: {template['error']}"
+    )
+    assert "file" in template, "Template file not found in the response."
+    assert "id" in template["file"], "Template file ID not found in the response."
+    assert template["file"]["id"] == file_id, (
+        "Retrieved template ID does not match the file ID."
+    )
+
+
+def test_box_docgen_template_delete(
+    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+):
+    """
+    Test deleting a Box Doc Gen template.
+    """
+    if not docgen_test_templates.docgen_test_files:
+        pytest.skip("No test files available for Doc Gen template deletion.")
+
+    # Use the first test file's ID
+    file_id = docgen_test_templates.docgen_test_files[2].id
+
+    # Delete the template by ID
+    response = box_docgen_template_delete(box_client_ccg, file_id)
+
+    # Check if the deletion was successful
+    assert "error" not in response, (
+        f"Error deleting Doc Gen template: {response['error']}"
+    )
+    assert response["message"] == "Template deleted successfully.", (
+        "Unexpected message after deleting the template."
+    )
+
+    # Verify that the template no longer exists
+    deleted_template = box_docgen_template_get_by_id(box_client_ccg, file_id)
+    assert "error" in deleted_template, "Template should not exist after deletion."
+
+
+def test_box_docgen_template_list_tags(
+    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+):
+    """
+    Test listing tags for a Box Doc Gen template.
+    """
+    if not docgen_test_templates.docgen_test_files:
+        pytest.skip("No test files available for Doc Gen template tag listing.")
+
+    # Use the first test file's ID
+    file_id = docgen_test_templates.docgen_test_files[0].id
+
+    # List tags for the template
+    tags = box_docgen_template_list_tags(box_client_ccg, file_id)
+
+    # Check if the tags are returned as a list
+    assert isinstance(tags, list), "Tags should be returned as a list."
+
+    # assert no error in response
+    assert "error" not in tags[0], (
+        f"Error listing tags for Doc Gen template: {tags[0]['error']}"
+    )
+    assert len(tags) > 0, "Tags list should not be empty."
+    assert all("tag_content" in tag for tag in tags), (
+        "Each tag should have a 'tag_content' key."
+    )

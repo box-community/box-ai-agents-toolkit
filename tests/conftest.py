@@ -2,15 +2,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import time
 
 import pytest
 from box_sdk_gen import (
-    BoxAPIError,
     CreateFolderParent,
     File,
     Folder,
     UploadFileAttributes,
     UploadFileAttributesParentField,
+    FileReferenceV2025R0,
 )
 from dotenv import load_dotenv
 
@@ -37,7 +38,7 @@ class DocGenTestData:
 
 
 @pytest.fixture(scope="module")
-def docgen_test_data(box_client_ccg: BoxClient):
+def docgen_test_files(box_client_ccg: BoxClient):
     # create temporary folder
     folder_name = f"Pytest DocGen Template  {datetime.now().isoformat()}"
     parent = CreateFolderParent(id="0")  # root folder
@@ -77,3 +78,23 @@ def docgen_test_data(box_client_ccg: BoxClient):
 
     # clean up temporary folder
     box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def docgen_test_templates(box_client_ccg: BoxClient, docgen_test_files: DocGenTestData):
+    """
+    Fixture to create and return a list of Doc Gen templates for testing.
+    """
+    if not docgen_test_files.docgen_test_files:
+        pytest.skip("No test files available for Doc Gen template creation.")
+
+    # Convert all test files into templates
+    for file in docgen_test_files.docgen_test_files:
+        box_client_ccg.docgen_template.create_docgen_template_v2025_r0(
+            FileReferenceV2025R0(id=file.id)
+        )
+
+    # it takes a few seconds for the templates to list the tags
+    time.sleep(5)
+
+    yield docgen_test_files
