@@ -91,6 +91,32 @@ def box_docgen_template_get_by_id(
         return {"error": e.message}
 
 
+def box_docgen_template_get_by_name(
+    client: BoxClient,
+    template_name: str,
+) -> dict[str, Any]:
+    """
+    Retrieve details of a specific Box Doc Gen template by name.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        template_name (str): Name of the template.
+
+    Returns:
+        dict[str, Any]: Metadata of the template or an error message.
+    """
+    try:
+        templates = box_docgen_template_list(client)
+        for template in templates:
+            # Normalize the file name for case-insensitive comparison
+            file_name = template.get("file_name")
+            if file_name is not None and file_name.lower() == template_name.lower():
+                return template
+        return {"error": "Template not found."}
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+
 def box_docgen_template_delete(
     client: BoxClient,
     template_id: str,

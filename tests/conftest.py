@@ -66,6 +66,7 @@ def docgen_test_files(box_client_ccg: BoxClient):
             )
             uploaded_file = box_client_ccg.uploads.upload_file(
                 attributes=file_attributes,
+                file_file_name=f"{file_name}_{datetime.now().isoformat()}",
                 file=f,
             )
             if not test_data.docgen_test_files:

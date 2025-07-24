@@ -7,6 +7,7 @@ from box_ai_agents_toolkit import (
     box_docgen_template_get_by_id,
     box_docgen_template_delete,
     box_docgen_template_list_tags,
+    box_docgen_template_get_by_name,
 )
 
 from .conftest import DocGenTestData
@@ -91,6 +92,38 @@ def test_box_docgen_template_get_by_id(
     assert "id" in template["file"], "Template file ID not found in the response."
     assert template["file"]["id"] == file_id, (
         "Retrieved template ID does not match the file ID."
+    )
+
+
+def test_box_docgen_template_get_by_name(
+    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+):
+    """
+    Test retrieving a Box Doc Gen template by name.
+    """
+    if not docgen_test_templates.docgen_test_files:
+        pytest.skip("No test files available for Doc Gen template retrieval by name.")
+
+    # Use the first test file's name
+    template_name = docgen_test_templates.docgen_test_files[0].name
+    if not template_name:
+        pytest.skip("Test file does not have a name for Doc Gen template retrieval.")
+
+    # Retrieve the template by name
+    template = box_docgen_template_get_by_name(box_client_ccg, template_name)
+
+    # Check if the retrieval was successful
+    assert "error" not in template, (
+        f"Error retrieving Doc Gen template by name: {template['error']}"
+    )
+    assert "file_name" in template, "Template file name not found in the response."
+    assert "file" in template, "Template file not found in the response."
+    assert "id" in template["file"], "Template file ID not found in the response."
+    assert template["file_name"] == template_name, (
+        "Retrieved template name does not match the expected name."
+    )
+    assert template["file"]["id"] == docgen_test_templates.docgen_test_files[0].id, (
+        "Retrieved template ID does not match the expected file ID."
     )
 
 
