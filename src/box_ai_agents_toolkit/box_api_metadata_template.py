@@ -25,6 +25,7 @@ def _box_metadata_template_create(
     display_name: str,
     fields: List[CreateMetadataTemplateFields] | None = None,
     copy_instance_on_item_copy: bool | None = None,
+    template_key: Optional[str] = None,
 ) -> MetadataTemplate:
     """
     Create a new metadata template definition in Box.
@@ -43,6 +44,7 @@ def _box_metadata_template_create(
         display_name=display_name,
         fields=fields or [],
         copy_instance_on_item_copy=copy_instance_on_item_copy or False,
+        template_key=template_key,
     )
 
 
@@ -124,6 +126,7 @@ def box_metadata_template_create(
             client=client,
             display_name=display_name,
             fields=metadata_template_fields,
+            template_key=template_key,
         )
         return response.to_dict()
     except BoxAPIError as e:
