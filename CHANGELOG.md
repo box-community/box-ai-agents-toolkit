@@ -1,5 +1,21 @@
 # Changelog
 ## 0.0.26 - 2025-03-25
+## 0.0.44 - 2025-07-25
+
+* updating readme.md (f5e29d2)
+* [AI] removing deprecated ai tools (393f6b1)
+* [DOCGE] fix flaky test (0cd5e17)
+* [METADATA] fix missing param in creating template (7f9b163)
+* [DOCGEN] remove old vibe testing (0eebfd6)
+* [RUFF] (ebe9a10)
+* [DOCGEN] single file, jobs, and job list (73fcc54)
+* [DOCGEN] create batch and single file (065bfc3)
+* [DOCGEN] remove old vibe coding test suite (63bf52c)
+* [RUFF] (b0c71cc)
+* [DOCGEN] implementing template get by name (6458269)
+* [DOCGEN] implementing template get by id delete tags and jobs (2c17f08)
+* [DOCGEN] implementing template create and list (4904507)
+* Update version to 0.0.43 and changelog (d314ee9)
 ## 0.0.43 - 2025-07-14
 
 * fixing exports (7ec2683)
