@@ -7,9 +7,17 @@ A Python library for building AI agents for Box. This toolkit provides functiona
 - **Authentication**: Authenticate with Box using OAuth or CCG.
 - **Box API Interactions**: Interact with Box files and folders.
 - **File Upload & Download**: Easily upload files to and download files from Box.
+- **Folder Management**: Create, update, delete, and list folder contents.
+- **Search**: Search for content and locate folders by name.
 - **Document Generation (DocGen)**: Create and manage document generation jobs and templates.
-- **Metadata Templates**: Create, list, update, and delete metadata templates.
-- **AI Capabilities**: Ask AI questions about files or Box hubs and extract information from file contents.
+- **Metadata Templates**: Create and retrieve metadata templates by key, ID, or name.
+- **Metadata Instances**: Set, get, update, and delete metadata instances on files.
+- **AI Capabilities**: 
+  - Ask AI questions about single or multiple files
+  - Ask AI questions about Box hubs
+  - Extract information using freeform prompts
+  - Extract structured information using fields or templates
+  - Enhanced extraction capabilities with improved formatting
 
 ## Installation
 
@@ -80,6 +88,42 @@ from box_ai_agents_toolkit import box_file_text_extract
 text = box_file_text_extract(client, file_id="12345")
 ```
 
+**List Folder Contents:**
+
+```python
+from box_ai_agents_toolkit import box_folder_list_content
+
+contents = box_folder_list_content(client, folder_id="0")
+print("Folder contents:", contents)
+```
+
+**Create a Folder:**
+
+```python
+from box_ai_agents_toolkit import box_create_folder
+
+folder = box_create_folder(client, name="New Folder", parent_id="0")
+print("Created folder:", folder)
+```
+
+**Update a Folder:**
+
+```python
+from box_ai_agents_toolkit import box_update_folder
+
+updated_folder = box_update_folder(client, folder_id="12345", name="Updated Name", description="New description")
+print("Updated folder:", updated_folder)
+```
+
+**Delete a Folder:**
+
+```python
+from box_ai_agents_toolkit import box_delete_folder
+
+box_delete_folder(client, folder_id="12345")
+print("Folder deleted")
+```
+
 #### File Upload & Download
 
 **Upload a File:**
@@ -99,6 +143,26 @@ from box_ai_agents_toolkit import box_file_download
 
 path_saved, file_content, mime_type = box_file_download(client, file_id="12345", save_file=True)
 print("File saved to:", path_saved)
+```
+
+#### Search
+
+**Search for Content:**
+
+```python
+from box_ai_agents_toolkit import box_search
+
+results = box_search(client, query="contract", limit=10, content_types=["name", "description"])
+print("Search results:", results)
+```
+
+**Locate Folder by Name:**
+
+```python
+from box_ai_agents_toolkit import box_locate_folder_by_name
+
+folder = box_locate_folder_by_name(client, folder_name="Documents", parent_folder_id="0")
+print("Found folder:", folder)
 ```
 
 ### Document Generation (DocGen)
@@ -139,6 +203,15 @@ template_details = box_docgen_template_get_by_id(client, template_id="template_f
 print("Template details:", template_details)
 ```
 
+**Retrieve a DocGen Template by Name:**
+
+```python
+from box_ai_agents_toolkit import box_docgen_template_get_by_name
+
+template_details = box_docgen_template_get_by_name(client, template_name="My Template")
+print("Template details:", template_details)
+```
+
 **List Template Tags and Jobs:**
 
 ```python
@@ -163,13 +236,47 @@ batch = box_docgen_create_batch(client, file_id="f1", input_source="api", destin
 print("Batch job created:", batch)
 ```
 
-Alternatively, you can create a batch from raw user input:
+**Create Single Document from User Input:**
 
 ```python
-from box_ai_agents_toolkit import box_docgen_create_batch_from_user_input
+from box_ai_agents_toolkit import box_docgen_create_single_file_from_user_input
 
-batch = box_docgen_create_batch_from_user_input(client, file_id="f1", destination_folder_id="dest", user_input='{"key":"value"}', generated_file_name="Output File", output_type="pdf")
-print("Batch job created from user input:", batch)
+result = box_docgen_create_single_file_from_user_input(
+    client, 
+    file_id="template_file_id", 
+    destination_folder_id="dest_folder_id", 
+    user_input='{"name": "John Doe", "date": "2024-01-01"}', 
+    generated_file_name="Generated Document",
+    output_type="pdf"
+)
+print("Single document created:", result)
+```
+
+**Get DocGen Job by ID:**
+
+```python
+from box_ai_agents_toolkit import box_docgen_get_job_by_id
+
+job = box_docgen_get_job_by_id(client, job_id="job123")
+print("Job details:", job)
+```
+
+**List DocGen Jobs:**
+
+```python
+from box_ai_agents_toolkit import box_docgen_list_jobs
+
+jobs = box_docgen_list_jobs(client, marker="m", limit=10)
+print("DocGen jobs:", jobs)
+```
+
+**List Jobs by Batch:**
+
+```python
+from box_ai_agents_toolkit import box_docgen_list_jobs_by_batch
+
+batch_jobs = box_docgen_list_jobs_by_batch(client, batch_id="batch123", marker="m", limit=5)
+print("Batch jobs:", batch_jobs)
 ```
 
 ### Metadata Templates
@@ -191,78 +298,179 @@ template = box_metadata_template_create(
 print("Created Metadata Template:", template)
 ```
 
-**List Metadata Templates:**
+**Retrieve a Metadata Template by Key:**
 
 ```python
-from box_ai_agents_toolkit import box_metadata_template_list
+from box_ai_agents_toolkit import box_metadata_template_get_by_key
 
-templates = box_metadata_template_list(client, scope="enterprise", marker="m", limit=5)
-print("Metadata Templates:", templates)
-```
-
-**Retrieve a Metadata Template:**
-
-```python
-from box_ai_agents_toolkit import box_metadata_template_get
-
-template = box_metadata_template_get(client, scope="enterprise", template_key="tmpl1")
+template = box_metadata_template_get_by_key(client, scope="enterprise", template_key="tmpl1")
 print("Metadata Template Details:", template)
 ```
 
-**Update a Metadata Template:**
+**Retrieve a Metadata Template by ID:**
 
 ```python
-from box_ai_agents_toolkit import box_metadata_template_update
+from box_ai_agents_toolkit import box_metadata_template_get_by_id
 
-updated_template = box_metadata_template_update(client, scope="global", template_key="tmpl1", request_body=[{"op": "replace", "path": "/displayName", "value": "New Name"}])
-print("Updated Metadata Template:", updated_template)
+template = box_metadata_template_get_by_id(client, template_id="12345")
+print("Metadata Template Details:", template)
 ```
 
-**Delete a Metadata Template:**
+**Retrieve a Metadata Template by Name:**
 
 ```python
-from box_ai_agents_toolkit import box_metadata_template_delete
+from box_ai_agents_toolkit import box_metadata_template_get_by_name
 
-box_metadata_template_delete(client, scope="enterprise", template_key="tmpl1")
-print("Metadata Template deleted")
+template = box_metadata_template_get_by_name(client, template_name="My Template", scope="enterprise")
+print("Metadata Template Details:", template)
 ```
 
-**List Metadata Templates by Instance ID:**
+#### Metadata Instances on Files
+
+**Set Metadata Instance on File:**
 
 ```python
-from box_ai_agents_toolkit import box_metadata_template_list_by_instance_id
+from box_ai_agents_toolkit import box_metadata_set_instance_on_file
 
-templates = box_metadata_template_list_by_instance_id(client, metadata_instance_id="inst1", marker="a", limit=3)
-print("Templates by Instance ID:", templates)
+metadata = {"field1": "value1", "field2": "value2"}
+result = box_metadata_set_instance_on_file(
+    client, 
+    file_id="12345", 
+    scope="enterprise", 
+    template_key="tmpl1", 
+    metadata=metadata
+)
+print("Metadata set:", result)
+```
+
+**Get Metadata Instance on File:**
+
+```python
+from box_ai_agents_toolkit import box_metadata_get_instance_on_file
+
+metadata = box_metadata_get_instance_on_file(
+    client, 
+    file_id="12345", 
+    scope="enterprise", 
+    template_key="tmpl1"
+)
+print("File metadata:", metadata)
+```
+
+**Update Metadata Instance on File:**
+
+```python
+from box_ai_agents_toolkit import box_metadata_update_instance_on_file
+
+updates = [
+    {"op": "replace", "path": "/field1", "value": "new_value1"},
+    {"op": "add", "path": "/field3", "value": "value3"}
+]
+result = box_metadata_update_instance_on_file(
+    client, 
+    file_id="12345", 
+    scope="enterprise", 
+    template_key="tmpl1", 
+    request_body=updates
+)
+print("Metadata updated:", result)
+```
+
+**Delete Metadata Instance on File:**
+
+```python
+from box_ai_agents_toolkit import box_metadata_delete_instance_on_file
+
+box_metadata_delete_instance_on_file(
+    client, 
+    file_id="12345", 
+    scope="enterprise", 
+    template_key="tmpl1"
+)
+print("Metadata instance deleted")
 ```
 
 ### AI Capabilities
 
-**Ask AI a Question about a File:**
+**Ask AI a Question about a Single File:**
 
 ```python
-from box_ai_agents_toolkit import box_file_ai_ask
+from box_ai_agents_toolkit import box_ai_ask_file_single
 
-response = box_file_ai_ask(client, file_id="12345", prompt="What is this file about?")
+response = box_ai_ask_file_single(client, file_id="12345", prompt="What is this file about?")
+print("AI Response:", response)
+```
+
+**Ask AI a Question about Multiple Files:**
+
+```python
+from box_ai_agents_toolkit import box_ai_ask_file_multi
+
+file_ids = ["12345", "67890"]
+response = box_ai_ask_file_multi(client, file_ids=file_ids, prompt="Compare these files")
 print("AI Response:", response)
 ```
 
 **Ask AI a Question about a Box Hub:**
 
 ```python
-from box_ai_agents_toolkit import box_hubs_ai_ask
+from box_ai_agents_toolkit import box_ai_ask_hub
 
-response = box_hubs_ai_ask(client, hubs_id="12345", prompt="What is the current policy on parental leave?")
+response = box_ai_ask_hub(client, hubs_id="12345", prompt="What is the current policy on parental leave?")
 print("AI Response:", response)
 ```
 
-**Extract Information from a File using AI:**
+**Extract Information from Files using AI (Freeform):**
 
 ```python
-from box_ai_agents_toolkit import box_file_ai_extract
+from box_ai_agents_toolkit import box_ai_extract_freeform
 
-response = box_file_ai_extract(client, file_id="12345", prompt="Extract date, name, and contract number from this file.")
+response = box_ai_extract_freeform(client, file_id="12345", prompt="Extract date, name, and contract number from this file.")
 print("AI Extract Response:", response)
+```
+
+**Extract Structured Information using Fields:**
+
+```python
+from box_ai_agents_toolkit import box_ai_extract_structured_using_fields
+
+fields = [
+    {"key": "contract_date", "type": "date", "description": "The contract signing date"},
+    {"key": "parties", "type": "array", "description": "Names of contracting parties"}
+]
+response = box_ai_extract_structured_using_fields(client, file_id="12345", fields=fields)
+print("Structured Extract Response:", response)
+```
+
+**Extract Enhanced Structured Information using Fields:**
+
+```python
+from box_ai_agents_toolkit import box_ai_extract_structured_enhanced_using_fields
+
+fields = [
+    {"key": "contract_date", "type": "date", "description": "The contract signing date"},
+    {"key": "parties", "type": "array", "description": "Names of contracting parties"}
+]
+response = box_ai_extract_structured_enhanced_using_fields(client, file_id="12345", fields=fields)
+print("Enhanced Structured Extract Response:", response)
+```
+
+**Extract Structured Information using Template:**
+
+```python
+from box_ai_agents_toolkit import box_ai_extract_structured_using_template
+
+response = box_ai_extract_structured_using_template(client, file_id="12345", template_key="contract_template")
+print("Template-based Extract Response:", response)
+```
+
+**Extract Enhanced Structured Information using Template:**
+
+```python
+from box_ai_agents_toolkit import box_ai_extract_structured_enhanced_using_template
+
+response = box_ai_extract_structured_enhanced_using_template(client, file_id="12345", template_key="contract_template")
+print("Enhanced Template-based Extract Response:", response)
 ```
 
 ## Development
@@ -286,6 +494,20 @@ To run the tests, use:
 
 ```sh
 pytest
+```
+
+### Linting and Code Quality
+
+To run the linter:
+
+```sh
+ruff check
+```
+
+To format code:
+
+```sh
+ruff format
 ```
 
 ## License
