@@ -133,7 +133,7 @@ def box_metadata_template_create(
         return {"error": e.message}
 
 
-def _box_metadata_template_list(
+def box_metadata_template_list(
     client: BoxClient,
     marker: Optional[str] = None,
     limit: Optional[int] = None,
@@ -143,7 +143,6 @@ def _box_metadata_template_list(
 
     Args:
         client (BoxClient): An authenticated Box client.
-        scope (str): The scope ("enterprise" or "global").
         marker (str, optional): Pagination marker.
         limit (int, optional): Max items per page.
 
@@ -248,7 +247,7 @@ def box_metadata_template_get_by_name(
     Returns:
         Optional[MetadataTemplate]: The found metadata template or None if not found.
     """
-    templates = _box_metadata_template_list(client)
+    templates = box_metadata_template_list(client)
     entries = getattr(templates, "entries", None)
     if entries is None:
         return {"message": "No templates found"}

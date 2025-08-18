@@ -9,12 +9,12 @@ from src.box_ai_agents_toolkit.box_api_metadata_template import (
     MetadataTemplates,
     _box_metadata_template_create,
     _box_metadata_template_delete,
-    _box_metadata_template_list,
     box_metadata_delete_instance_on_file,
     box_metadata_get_instance_on_file,
     box_metadata_set_instance_on_file,
     box_metadata_template_get_by_key,
     box_metadata_template_get_by_name,
+    box_metadata_template_list,
     box_metadata_update_instance_on_file,
 )
 
@@ -165,7 +165,7 @@ def test_box_metadata_template_list(
     box_client_ccg: BoxClient, created_template: MetadataTemplate
 ):
     """Test listing metadata templates."""
-    response: MetadataTemplates = _box_metadata_template_list(box_client_ccg)
+    response: MetadataTemplates = box_metadata_template_list(box_client_ccg)
     assert response is not None
     assert response.entries is not None and len(response.entries) > 0
     # Check it the template created shows up on the list
@@ -441,7 +441,7 @@ def test_box_metadata_update_instance_on_file_add_missing_fields(
 @pytest.mark.skip(reason="Delete Pytest leftovers")
 def test_delete_all_pytest_templates(box_client_ccg: BoxClient):
     # list all templates that start with "Pytest Template"
-    templates = _box_metadata_template_list(box_client_ccg)
+    templates = box_metadata_template_list(box_client_ccg)
 
     if templates.entries is not None:
         for template in templates.entries:

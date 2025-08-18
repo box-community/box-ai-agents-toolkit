@@ -69,6 +69,7 @@ from .box_api_metadata_template import (
     box_metadata_template_get_by_id,
     box_metadata_template_get_by_key,
     box_metadata_template_get_by_name,
+    box_metadata_template_list,
     box_metadata_update_instance_on_file,
 )
 
@@ -116,6 +117,7 @@ __all__ = [
     "box_docgen_template_list",
     "box_docgen_template_list_jobs",
     "box_docgen_template_list_tags",
+    "box_metadata_template_list",
     "box_metadata_delete_instance_on_file",
     "box_metadata_get_instance_on_file",
     "box_metadata_set_instance_on_file",
