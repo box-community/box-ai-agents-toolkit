@@ -1,5 +1,9 @@
 # Changelog
 ## 0.0.26 - 2025-03-25
+## 0.0.45 - 2025-08-18
+
+* enable metadata template list (6d88ad6)
+* Update version to 0.0.44 and changelog (278042e)
 ## 0.0.44 - 2025-07-25
 
 * updating readme.md (f5e29d2)
