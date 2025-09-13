@@ -1,6 +1,5 @@
 import os
 import tempfile
-import time
 
 import pytest
 from box_sdk_gen import BoxClient, UploadFileAttributes, UploadFileAttributesParentField

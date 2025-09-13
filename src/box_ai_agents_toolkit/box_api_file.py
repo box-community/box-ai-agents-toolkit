@@ -10,7 +10,6 @@ from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
     File,
-    FileFullRepresentationsEntriesField,
     UploadFileAttributes,
     UploadFileAttributesParentField,
 )
