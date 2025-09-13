@@ -23,9 +23,12 @@ def _do_request(box_client: BoxClient, url: str):
     """
     try:
         access_token = box_client.auth.retrieve_token().access_token
+        resp = requests.get(url, headers={"Authorization": f"Bearer {access_token}"})
+        resp.raise_for_status()
+        return resp.content
     except BoxSDKError as e:
-        raise e
-
-    resp = requests.get(url, headers={"Authorization": f"Bearer {access_token}"})
-    resp.raise_for_status()
-    return resp.content
+        raise BoxSDKError(f"Failed to retrieve access token: {e.message}")
+    except requests.HTTPError as e:
+        raise requests.HTTPError(
+            f"Request failed: {e.response.text if e.response else str(e)}"
+        )

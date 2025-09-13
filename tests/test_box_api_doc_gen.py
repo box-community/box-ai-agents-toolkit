@@ -12,26 +12,26 @@ from box_ai_agents_toolkit import (
     box_docgen_list_jobs_by_batch,
 )
 
-from .conftest import DocGenTestData
+from .conftest import TestData
 
 
 def test_box_docgen_create_batch(
-    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+    box_client_ccg: BoxClient, docgen_test_templates: TestData
 ):
     """
     Test creating a Box Doc Gen batch.
     """
     # Ensure we have a test template to work with
-    if not docgen_test_templates.docgen_test_files:
+    if not docgen_test_templates.test_files:
         pytest.skip("No test templates available for Doc Gen batch creation.")
 
     # Use the first test template
-    template_file_id = docgen_test_templates.docgen_test_files[0].id
+    template_file_id = docgen_test_templates.test_files[0].id
 
     # Define the destination folder ID and output type
-    destination_folder_id = docgen_test_templates.docgen_test_folder.id
+    destination_folder_id = docgen_test_templates.test_folder.id
 
-    destination_file_name = f"{docgen_test_templates.docgen_test_files[0].name}_generated_{datetime.now().isoformat()}.pdf"
+    destination_file_name = f"{docgen_test_templates.test_files[0].name}_generated_{datetime.now().isoformat()}.pdf"
     output_type = "pdf"
 
     # Read tags from template file
@@ -65,26 +65,26 @@ def test_box_docgen_create_batch(
     # Check if the batch creation was successful
     assert "error" not in batch, f"Error creating Doc Gen batch: {batch['error']}"
     assert "message" in batch, "Batch creation did not return a success message"
-    assert "Batch created successfully" in batch["message"], (
-        "Batch creation message is incorrect"
-    )
+    assert (
+        "Batch created successfully" in batch["message"]
+    ), "Batch creation message is incorrect"
 
 
 def test_box_docgen_create_single_file_from_user_input(
-    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+    box_client_ccg: BoxClient, docgen_test_templates: TestData
 ):
     """
     Test creating a single document from a Doc Gen template using user input.
     """
     # Ensure we have a test template to work with
-    if not docgen_test_templates.docgen_test_files:
+    if not docgen_test_templates.test_files:
         pytest.skip("No test templates available for single file creation.")
 
     # Use the first test template
-    template_file_id = docgen_test_templates.docgen_test_files[0].id
+    template_file_id = docgen_test_templates.test_files[0].id
 
     # Define the destination folder ID and output type
-    destination_folder_id = docgen_test_templates.docgen_test_folder.id
+    destination_folder_id = docgen_test_templates.test_folder.id
     output_type = "pdf"
 
     sample_user_input = {
@@ -111,20 +111,20 @@ def test_box_docgen_create_single_file_from_user_input(
 
 
 def test_box_docgen_list_jobs_by_batch(
-    box_client_ccg: BoxClient, docgen_test_templates: DocGenTestData
+    box_client_ccg: BoxClient, docgen_test_templates: TestData
 ):
     """
     Test listing Doc Gen jobs by batch.
     """
     # Ensure we have a test template to work with
-    if not docgen_test_templates.docgen_test_files:
+    if not docgen_test_templates.test_files:
         pytest.skip("No test templates available for Doc Gen job listing.")
 
     # Use the first test template
-    template_file_id = docgen_test_templates.docgen_test_files[0].id
+    template_file_id = docgen_test_templates.test_files[0].id
 
     # Define the destination folder ID and output type
-    destination_folder_id = docgen_test_templates.docgen_test_folder.id
+    destination_folder_id = docgen_test_templates.test_folder.id
     output_type = "pdf"
 
     sample_user_input = {
@@ -153,9 +153,9 @@ def test_box_docgen_list_jobs_by_batch(
     # Check if the batch creation was successful
     assert "error" not in batch, f"Error creating Doc Gen batch: {batch['error']}"
     assert "message" in batch, "Batch creation did not return a success message"
-    assert "Batch created successfully" in batch["message"], (
-        "Batch creation message is incorrect"
-    )
+    assert (
+        "Batch created successfully" in batch["message"]
+    ), "Batch creation message is incorrect"
 
     # List the jobs in the created batch
     jobs = box_docgen_list_jobs_by_batch(
@@ -186,6 +186,6 @@ def test_box_docgen_list_jobs_by_batch(
     )
     # Check if the user job listing was successful
     assert isinstance(user_docgen_jobs, list), "User job listing did not return a list"
-    assert "error" not in user_docgen_jobs[0], (
-        f"Error listing user Doc Gen jobs: {user_docgen_jobs[0]['error']}"
-    )
+    assert (
+        "error" not in user_docgen_jobs[0]
+    ), f"Error listing user Doc Gen jobs: {user_docgen_jobs[0]['error']}"
