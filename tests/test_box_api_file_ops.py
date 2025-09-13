@@ -3,11 +3,11 @@ import tempfile
 import time
 
 import pytest
-from .conftest import TestData
-
 from box_sdk_gen import BoxClient, UploadFileAttributes, UploadFileAttributesParentField
 
 from box_ai_agents_toolkit import box_file_text_extract
+
+from .conftest import TestData
 
 
 def test_box_upload_file(box_client_ccg: BoxClient):

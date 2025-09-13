@@ -3,16 +3,16 @@ import mimetypes
 import os
 import tempfile
 import time
-from typing import Any, Dict, Optional, Tuple, Union
 from enum import Enum
+from typing import Any, Dict, Optional, Tuple, Union
 
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
     File,
+    FileFullRepresentationsEntriesField,
     UploadFileAttributes,
     UploadFileAttributesParentField,
-    FileFullRepresentationsEntriesField,
 )
 from requests import HTTPError
 
