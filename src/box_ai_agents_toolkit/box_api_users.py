@@ -51,7 +51,7 @@ def _box_users_search(
     filter_term: Optional[str] = None,
     limit: int = 1000,
 ) -> List[Dict[str, Any]]:
-    """List users in the Box account."""
+    """Search for users in the Box account based on a filter term."""
     fields = ["id", "type", "name", "login", "role"]
     offset = 0
 
