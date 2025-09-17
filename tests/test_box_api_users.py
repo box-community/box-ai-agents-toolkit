@@ -1,7 +1,7 @@
 from box_sdk_gen import BoxClient
 from box_ai_agents_toolkit import (
     box_users_list,
-    box_users_search_by_email,
+    box_users_locate_by_email,
     box_users_locate_by_name,
     box_users_search_by_name_or_email,
 )
@@ -70,14 +70,22 @@ def test_box_users_locate_by_email(box_client_ccg: BoxClient):
     test_user = users_base[0]
     test_email = test_user["login"]
 
-    locate_result = box_users_search_by_email(box_client_ccg, test_email)
-    located_users = locate_result.get("users", None)
-    located_user = located_users[0] if located_users else None
+    locate_result = box_users_locate_by_email(box_client_ccg, test_email)
+    located_user = locate_result.get("user", None)
     error = locate_result.get("error", None)
 
     assert error is None, f"Error occurred: {error}"
     assert located_user is not None, "No user located."
     assert located_user == test_user
+
+    # Test with an email that doesn't exist
+    locate_result_none = box_users_locate_by_email(
+        box_client_ccg, "non.existing@email.com"
+    )
+    message = locate_result_none.get("message", None)
+    error_none = locate_result_none.get("error", None)
+    assert error_none is None, f"Error occurred: {error_none}"
+    assert message == "No user found", "Expected 'No user found' message."
 
 
 def test_box_users_locate_by_name(box_client_ccg: BoxClient):
@@ -91,13 +99,19 @@ def test_box_users_locate_by_name(box_client_ccg: BoxClient):
     test_name = test_user["name"]
 
     locate_result = box_users_locate_by_name(box_client_ccg, test_name)
-    located_users = locate_result.get("users", None)
-    located_user = located_users[0] if located_users else None
+    located_user = locate_result.get("user", None)
     error = locate_result.get("error", None)
 
     assert error is None, f"Error occurred: {error}"
     assert located_user is not None, "No user located."
     assert located_user == test_user
+
+    # Test with a name that doesn't exist
+    locate_result_none = box_users_locate_by_name(box_client_ccg, "Non Existent Name")
+    message = locate_result_none.get("message", None)
+    error_none = locate_result_none.get("error", None)
+    assert error_none is None, f"Error occurred: {error_none}"
+    assert message == "No user found", "Expected 'No user found' message."
 
 
 def test_box_users_search_by_name_or_email(box_client_ccg: BoxClient):

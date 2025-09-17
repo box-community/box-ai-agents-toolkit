@@ -75,7 +75,7 @@ from .box_api_metadata_template import (
 
 from .box_api_users import (
     box_users_list,
-    box_users_search_by_email,
+    box_users_locate_by_email,
     box_users_locate_by_name,
     box_users_search_by_name_or_email,
 )
@@ -134,7 +134,7 @@ __all__ = [
     "box_metadata_template_get_by_name",
     "box_metadata_update_instance_on_file",
     "box_users_list",
-    "box_users_search_by_email",
+    "box_users_locate_by_email",
     "box_users_locate_by_name",
     "box_users_search_by_name_or_email",
 ]

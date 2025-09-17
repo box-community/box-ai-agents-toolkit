@@ -95,17 +95,23 @@ def box_users_list(
         return {"error": e.message}
 
 
-def box_users_search_by_email(
+def box_users_locate_by_email(
     client: BoxClient,
     email: str,
 ) -> Dict[str, Any]:
     """Locate a user by their email address."""
     try:
         users = _box_users_search(client, filter_term=email)
-        return {"users": users}
+        # this returns more than on, lets make sure we have only one exact match
+        user = [user for user in users if user.get("login") == email]
+        if user is None or len(user) == 0:
+            return {"message": "No user found"}
+        if len(user) >= 1:
+            return {"user": user[0]}
     except BoxAPIError as e:
         logging.error(f"Error locating user by email: {e.message}")
         return {"error": e.message}
+    return {"message": "No user found"}
 
 
 def box_users_locate_by_name(
@@ -115,10 +121,16 @@ def box_users_locate_by_name(
     """Locate a user by their name."""
     try:
         users = _box_users_search(client, filter_term=name)
-        return {"users": users}
+        # this returns more than on, lets make sure we have only one exact match
+        user = [user for user in users if user.get("name", "") == name]
+        if user is None or len(user) == 0:
+            return {"message": "No user found"}
+        if len(user) >= 1:
+            return {"user": user[0]}
     except BoxAPIError as e:
         logging.error(f"Error locating user by name: {e.message}")
         return {"error": e.message}
+    return {"message": "No user found"}
 
 
 def box_users_search_by_name_or_email(
