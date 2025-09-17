@@ -31,7 +31,8 @@ def _get_all_users_manually(client: BoxClient):
             if users.entries:
                 users_base.extend(user.to_dict() for user in users.entries)
             marker = users.next_marker if users.next_marker else None
-        return users_base
+
+    return users_base
 
 
 def test_box_users_list(box_client_ccg: BoxClient):
