@@ -43,7 +43,6 @@ def _box_users_list(
             if users.entries:
                 result.extend(user.to_dict() for user in users.entries)
             marker = users.next_marker if users.next_marker else None
-
     return result
 
 
