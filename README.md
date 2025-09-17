@@ -232,7 +232,13 @@ data_input = [
     {"generated_file_name": "file1", "user_input": {"a": "b"}},
     {"generated_file_name": "file2", "user_input": {"x": "y"}}
 ]
-batch = box_docgen_create_batch(client, file_id="f1", input_source="api", destination_folder_id="dest", output_type="pdf", document_generation_data=data_input)
+batch = box_docgen_create_batch(
+    client=client,
+    docgen_template_id="template_file_id",
+    destination_folder_id="dest_folder_id",
+    output_type="pdf",
+    document_generation_data=data_input
+)
 print("Batch job created:", batch)
 ```
 
@@ -242,10 +248,10 @@ print("Batch job created:", batch)
 from box_ai_agents_toolkit import box_docgen_create_single_file_from_user_input
 
 result = box_docgen_create_single_file_from_user_input(
-    client, 
-    file_id="template_file_id", 
+    client=client, 
+    docgen_template_id="template_file_id", 
     destination_folder_id="dest_folder_id", 
-    user_input='{"name": "John Doe", "date": "2024-01-01"}', 
+    user_input={"name": "John Doe", "date": "2024-01-01"}, 
     generated_file_name="Generated Document",
     output_type="pdf"
 )
@@ -471,6 +477,71 @@ from box_ai_agents_toolkit import box_ai_extract_structured_enhanced_using_templ
 
 response = box_ai_extract_structured_enhanced_using_template(client, file_id="12345", template_key="contract_template")
 print("Enhanced Template-based Extract Response:", response)
+```
+
+### User Management
+
+**Get Current User Info:**
+
+```python
+from box_ai_agents_toolkit import box_user_get_current
+
+user = box_user_get_current(client)
+print("Current user info:", user)
+```
+
+**Get User by ID:**
+
+```python
+from box_ai_agents_toolkit import box_user_get_by_id
+
+user = box_user_get_by_id(client, user_id="123456")
+print("User info:", user)
+```
+
+**List Users:**
+
+```python
+from box_ai_agents_toolkit import box_user_list
+
+users = box_user_list(client, limit=10)
+print("Users:", users)
+```
+
+**List All Users:**
+
+```python
+from box_ai_agents_toolkit import box_users_list
+
+result = box_users_list(client)
+print("All users:", result)
+```
+
+**Search Users by Email:**
+
+```python
+from box_ai_agents_toolkit import box_users_search_by_email
+
+result = box_users_search_by_email(client, email="user@example.com")
+print("Users with this email:", result)
+```
+
+**Locate Users by Name:**
+
+```python
+from box_ai_agents_toolkit import box_users_locate_by_name
+
+result = box_users_locate_by_name(client, name="Jane Doe")
+print("Users with this name:", result)
+```
+
+**Search Users by Name or Email:**
+
+```python
+from box_ai_agents_toolkit import box_users_search_by_name_or_email
+
+result = box_users_search_by_name_or_email(client, query="Jane")
+print("Users matching query:", result)
 ```
 
 ## Development
