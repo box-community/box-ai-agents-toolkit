@@ -67,7 +67,7 @@ def _box_users_search(
     else:
         result = [user.to_dict() for user in users.entries]
 
-    # check if api returned a marker for next page
+    # check if there are more pages using total_count and offset (offset-based pagination)
     while users.total_count is not None and users.total_count > (offset + limit):
         offset += limit
         users = client.users.get_users(
