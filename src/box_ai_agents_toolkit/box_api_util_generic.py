@@ -1,9 +1,7 @@
 import logging
-from typing import Any, Dict, List, Optional
 from box_sdk_gen import (
     BoxAPIError,
     DataSanitizer,
-    BoxClient,
 )
 
 logging.basicConfig(level=logging.INFO)
