@@ -544,6 +544,35 @@ result = box_users_search_by_name_or_email(client, query="Jane")
 print("Users matching query:", result)
 ```
 
+### Group Management
+
+**Search for Groups:**
+
+```python
+from box_ai_agents_toolkit import box_groups_search
+
+result = box_groups_search(client, filter_term="Finance", limit=100)
+print("Groups:", result)
+```
+
+**List Groups for a Specific User:**
+
+```python
+from box_ai_agents_toolkit import box_groups_list_by_user
+
+result = box_groups_list_by_user(client, user_id="123456")
+print("User's groups:", result)
+```
+
+**List Members of a Group:**
+
+```python
+from box_ai_agents_toolkit import box_groups_list_members
+
+result = box_groups_list_members(client, group_id="654321")
+print("Group members:", result)
+```
+
 ## Development
 
 ### Setting Up
