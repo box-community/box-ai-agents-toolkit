@@ -80,6 +80,12 @@ from .box_api_users import (
     box_users_search_by_name_or_email,
 )
 
+from .box_api_groups import (
+    box_groups_search,
+    box_groups_list_by_user,
+    box_groups_list_members,
+)
+
 __all__ = [
     "BoxClient",
     "BoxSDKError",
@@ -137,4 +143,7 @@ __all__ = [
     "box_users_locate_by_email",
     "box_users_locate_by_name",
     "box_users_search_by_name_or_email",
+    "box_groups_search",
+    "box_groups_list_by_user",
+    "box_groups_list_members",
 ]
