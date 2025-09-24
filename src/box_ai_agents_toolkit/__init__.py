@@ -86,6 +86,16 @@ from .box_api_groups import (
     box_groups_list_members,
 )
 
+from .box_api_collaborations import (
+    box_collaborations_list_by_file,
+    box_collaboration_file_user_by_user_id,
+    box_collaboration_file_user_by_user_login,
+    box_collaboration_folder_user_by_user_id,
+    box_collaboration_folder_user_by_user_login,
+    box_collaboration_file_group_by_group_id,
+    box_collaboration_folder_group_by_group_id,
+)
+
 __all__ = [
     "BoxClient",
     "BoxSDKError",
@@ -146,4 +156,11 @@ __all__ = [
     "box_groups_search",
     "box_groups_list_by_user",
     "box_groups_list_members",
+    "box_collaborations_list_by_file",
+    "box_collaboration_file_user_by_user_id",
+    "box_collaboration_file_user_by_user_login",
+    "box_collaboration_folder_user_by_user_id",
+    "box_collaboration_folder_user_by_user_login",
+    "box_collaboration_file_group_by_group_id",
+    "box_collaboration_folder_group_by_group_id",
 ]
