@@ -325,6 +325,25 @@ def box_collaboration_folder_group_by_group_id(
     )
 
 
+def box_collaboration_delete(
+    client: BoxClient,
+    collaboration_id: str,
+) -> Dict[str, Any]:
+    """Delete a collaboration by its ID.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        collaboration_id (str): The ID of the collaboration to delete.
+    Returns:
+        Dict[str, Any]: Dictionary indicating success or containing error message.
+    """
+    try:
+        client.user_collaborations.delete_collaboration_by_id(collaboration_id)
+        return {"message": f"Collaboration {collaboration_id} deleted successfully."}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
 def box_collaborations_list_by_file(
     client: BoxClient,
     file_id: str,
@@ -375,5 +394,59 @@ def box_collaborations_list_by_file(
 
     if result is None or result == []:
         return {"message": "No collaborations found for the specified file."}
+
+    return {"collaborations": result}
+
+
+def box_collaborations_list_by_folder(
+    client: BoxClient,
+    folder_id: str,
+    limit: int = 1000,
+) -> Dict[str, Any]:
+    """List all collaborations for a specific folder.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        folder_id (str): The ID of the folder to list collaborations for.
+    Returns:
+        Dict[str, Any]: Dictionary containing list of collaborations or error message.
+    """
+
+    marker = None
+
+    try:
+        collaborations = client.list_collaborations.get_folder_collaborations(
+            folder_id=folder_id,
+            limit=limit,
+        )
+        if collaborations.entries is None:
+            result = []
+        else:
+            result = [
+                collaboration.to_dict() for collaboration in collaborations.entries
+            ]
+
+        # check if api returned a next marker and iterate over it
+        if collaborations.next_marker:
+            marker = collaborations.next_marker
+            while marker:
+                collaborations = client.list_collaborations.get_folder_collaborations(
+                    folder_id=folder_id,
+                    limit=limit,
+                    marker=marker,
+                )
+                if collaborations.entries:
+                    result.extend(
+                        collaboration.to_dict()
+                        for collaboration in collaborations.entries
+                    )
+                marker = (
+                    collaborations.next_marker if collaborations.next_marker else None
+                )
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+    if result is None or result == []:
+        return {"message": "No collaborations found for the specified folder."}
 
     return {"collaborations": result}
