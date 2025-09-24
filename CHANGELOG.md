@@ -1,5 +1,10 @@
 # Changelog
 ## 0.0.49 - 2025-09-17
+## 0.0.52 - 2025-09-24
+
+* Merge pull request #6 from box-community/rb/collaboration (53fc209)
+* collaboration delete and list by folder (eaebb34)
+* Update version to 0.0.51 and changelog (5c98638)
 ## 0.0.51 - 2025-09-24
 
 * Merge pull request #5 from box-community/rb/collaboration (3633d51)
