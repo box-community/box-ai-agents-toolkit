@@ -3,7 +3,7 @@ requires-python = ">=3.11"
 
 [[package]]
 name = "box-ai-agents-toolkit"
-version = "0.0.50"
+version = "0.0.51"
 source = { editable = "." }
 dependencies = [
     { name = "box-sdk-gen" },
