@@ -8,6 +8,8 @@ from box_sdk_gen import (
     CreateCollaborationAccessibleBy,
     CreateCollaborationAccessibleByTypeField,
     CreateCollaborationRole,
+    UpdateCollaborationByIdStatus,
+    UpdateCollaborationByIdRole,
 )
 
 from .box_api_util_generic import log_box_api_error, log_generic_error
@@ -21,6 +23,18 @@ def _role_to_enum(role: str) -> CreateCollaborationRole:
     else:
         log_generic_error(ValueError(f"Invalid role: {role}"))
         raise ValueError(f"Invalid role: {role}. Accepted roles: {valid_roles}")
+
+
+def _status_to_enum(status: str) -> UpdateCollaborationByIdStatus:
+    status = status.lower()
+    valid_statuses = [status.value for status in UpdateCollaborationByIdStatus]
+    if status in valid_statuses:
+        return UpdateCollaborationByIdStatus(status)
+    else:
+        log_generic_error(ValueError(f"Invalid status: {status}"))
+        raise ValueError(
+            f"Invalid status: {status}. Accepted statuses: {valid_statuses}"
+        )
 
 
 def _collaboration_item_create(
@@ -411,12 +425,13 @@ def box_collaborations_list_by_folder(
         Dict[str, Any]: Dictionary containing list of collaborations or error message.
     """
 
-    marker = None
+    marker = "0"
 
     try:
         collaborations = client.list_collaborations.get_folder_collaborations(
             folder_id=folder_id,
             limit=limit,
+            marker=marker,
         )
         if collaborations.entries is None:
             result = []
@@ -450,3 +465,53 @@ def box_collaborations_list_by_folder(
         return {"message": "No collaborations found for the specified folder."}
 
     return {"collaborations": result}
+
+
+def box_collaboration_update(
+    client: BoxClient,
+    collaboration_id: str,
+    role: str = "editor",
+    status: Optional[str] = None,
+    expires_at: Optional[DateTime] = None,
+    can_view_path: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Update a collaboration by its ID.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        collaboration_id (str): The ID of the collaboration to update.
+        role (str): The new role to assign to the collaborator. Default is "editor". Available roles are editor, viewer, previewer, uploader, viewer_uploader, co-owner.
+        status (Optional[str]): Set the status of a pending collaboration invitation, effectively accepting, or rejecting the invite. Accepted values are "accepted" or "rejected".
+        expires_at (Optional[DateTime]): The new expiration date of the collaboration.
+        can_view_path (Optional[bool]): If set to true, collaborators can view the path to the root folder for the shared item.
+    Returns:
+        Dict[str, Any]: Dictionary containing updated collaboration details or error message.
+    """
+
+    try:
+        role = _role_to_enum(role)
+    except ValueError as e:
+        return {"error": str(e)}
+
+    role = UpdateCollaborationByIdRole(role)
+
+    try:
+        status = _status_to_enum(status) if status else None
+    except ValueError as e:
+        return {"error": str(e)}
+
+    try:
+        result = client.user_collaborations.update_collaboration_by_id(
+            collaboration_id=collaboration_id,
+            role=role,
+            status=status,
+            expires_at=expires_at,
+            can_view_path=can_view_path,
+        )
+        return (
+            {"collaboration": result.to_dict()}
+            if result
+            else {"message": "No collaboration found with the specified ID."}
+        )
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}

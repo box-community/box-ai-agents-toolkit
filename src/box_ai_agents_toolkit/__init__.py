@@ -96,6 +96,7 @@ from .box_api_collaborations import (
     box_collaboration_file_group_by_group_id,
     box_collaboration_folder_group_by_group_id,
     box_collaboration_delete,
+    box_collaboration_update,
 )
 
 __all__ = [
@@ -167,4 +168,5 @@ __all__ = [
     "box_collaboration_file_group_by_group_id",
     "box_collaboration_folder_group_by_group_id",
     "box_collaboration_delete",
+    "box_collaboration_update",
 ]
