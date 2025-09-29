@@ -13,7 +13,7 @@ from box_sdk_gen import (
 from .box_api_util_generic import log_box_api_error, log_generic_error
 
 
-def _access_to_enum(access: str) -> AddShareLinkToFileSharedLinkAccessField:
+def _access_file_to_enum(access: str) -> AddShareLinkToFileSharedLinkAccessField:
     access = access.lower()
     valid_access = [access.value for access in AddShareLinkToFileSharedLinkAccessField]
     if access in valid_access:
@@ -55,7 +55,7 @@ def box_shared_link_file_create_or_update(
     access_enum: Optional[AddShareLinkToFileSharedLinkAccessField] = None
     if access:
         try:
-            access_enum = _access_to_enum(access)
+            access_enum = _access_file_to_enum(access)
         except ValueError as e:
             return {"error": str(e)}
 
