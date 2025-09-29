@@ -101,8 +101,9 @@ from .box_api_collaborations import (
 
 from .box_api_shared_links import (
     box_shared_link_file_get,
-    box_shared_link_file_create,
+    box_shared_link_file_create_or_update,
     box_shared_link_file_remove,
+    box_shared_link_file_find_by_shared_link_url,
 )
 
 __all__ = [
@@ -176,6 +177,7 @@ __all__ = [
     "box_collaboration_delete",
     "box_collaboration_update",
     "box_shared_link_file_get",
-    "box_shared_link_file_create",
+    "box_shared_link_file_create_or_update",
     "box_shared_link_file_remove",
+    "box_shared_link_file_find_by_shared_link_url",
 ]

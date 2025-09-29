@@ -1,7 +1,8 @@
 from box_ai_agents_toolkit import (
     box_shared_link_file_get,
-    box_shared_link_file_create,
+    box_shared_link_file_create_or_update,
     box_shared_link_file_remove,
+    box_shared_link_file_find_by_shared_link_url,
 )
 from box_sdk_gen import (
     BoxClient,
@@ -59,7 +60,7 @@ def test_box_shared_link_file_create(
     assert file_id is not None
 
     # Create a shared link
-    response = box_shared_link_file_create(
+    response = box_shared_link_file_create_or_update(
         client=box_client_ccg,
         file_id=file_id,
         access="company",
@@ -112,7 +113,7 @@ def test_box_shared_link_file_create_with_errors(
     assert file_id is not None
 
     # Test with invalid access level
-    response = box_shared_link_file_create(
+    response = box_shared_link_file_create_or_update(
         client=box_client_ccg,
         file_id=file_id,
         access="invalid_access",  # Invalid access level
@@ -132,7 +133,7 @@ def test_box_shared_link_file_create_with_errors(
     assert shared_link is None
 
     # Test with invalid file ID
-    response = box_shared_link_file_create(
+    response = box_shared_link_file_create_or_update(
         client=box_client_ccg,
         file_id="invalid_file_id",  # Invalid file ID
         access="company",
@@ -165,7 +166,7 @@ def test_box_shared_link_file_get_existing_shared_link(
     assert file_id is not None
 
     # First, create a shared link to ensure one exists
-    create_response = box_shared_link_file_create(
+    create_response = box_shared_link_file_create_or_update(
         client=box_client_ccg,
         file_id=file_id,
         access="company",
@@ -216,7 +217,7 @@ def test_box_shared_link_file_remove(
     assert file_id is not None
 
     # First, create a shared link to ensure one exists
-    create_response = box_shared_link_file_create(
+    create_response = box_shared_link_file_create_or_update(
         client=box_client_ccg,
         file_id=file_id,
         access="company",
@@ -283,4 +284,129 @@ def test_box_shared_link_file_remove(
     assert remove_shared_link is None
 
 
-#
+@pytest.mark.order(index=70)
+def test_box_shared_link_file_find_by_shared_link_url(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # Ensure we have a test file to work with
+    assert shared_link_test_files.test_files is not None
+    assert len(shared_link_test_files.test_files) > 0
+
+    test_file = shared_link_test_files.test_files[0]
+    file_id = test_file.id
+    assert file_id is not None
+
+    # First, create a shared link to ensure one exists
+    create_response = box_shared_link_file_create_or_update(
+        client=box_client_ccg,
+        file_id=file_id,
+        access="company",
+        can_download=True,
+        can_preview=True,
+        can_edit=False,
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+    assert "url" in shared_link
+
+    shared_link_url = shared_link.get("url")
+    assert shared_link_url is not None
+
+    # Now, find the file by the shared link URL using the function under test
+    find_response = box_shared_link_file_find_by_shared_link_url(
+        client=box_client_ccg, shared_link_url=shared_link_url, password=None
+    )
+    find_error = find_response.get("error")
+    find_message = find_response.get("message")
+    found_file = find_response.get("file")
+
+    assert find_error is None
+    assert find_message is None
+    assert found_file is not None
+    assert isinstance(found_file, dict)
+    assert found_file.get("id") == file_id
+    assert found_file.get("name") == test_file.name
+
+    # Clean up by removing the shared link
+    fields = "shared_link"
+    box_client_ccg.shared_links_files.remove_shared_link_from_file(
+        file_id=file_id,
+        fields=fields,
+    )
+
+    # test with invalid shared link URL
+    find_response_no_link = box_shared_link_file_find_by_shared_link_url(
+        client=box_client_ccg,
+        shared_link_url="https://box.com/s/invalid",
+        password=None,
+    )
+    find_error = find_response_no_link.get("error")
+    find_message = find_response_no_link.get("message")
+    found_file = find_response_no_link.get("file")
+
+    assert find_error is not None
+    assert "404 Not Found" in find_error
+    assert find_message is None
+    assert found_file is None
+
+
+@pytest.mark.order(index=80)
+def test_box_shared_link_file_find_by_shared_link_url_with_password(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # Ensure we have a test file to work with
+    assert shared_link_test_files.test_files is not None
+    assert len(shared_link_test_files.test_files) > 0
+
+    test_file = shared_link_test_files.test_files[0]
+    file_id = test_file.id
+    assert file_id is not None
+
+    password = "TestPassword123!"
+
+    # First, create a shared link with a password to ensure one exists
+    create_response = box_shared_link_file_create_or_update(
+        client=box_client_ccg,
+        file_id=file_id,
+        access="open",
+        can_download=True,
+        can_preview=True,
+        can_edit=False,
+        password=password,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+    assert "url" in shared_link
+
+    shared_link_url = shared_link.get("url")
+    assert shared_link_url is not None
+
+    # Now, find the file by the shared link URL and correct password using the function under test
+    find_response = box_shared_link_file_find_by_shared_link_url(
+        client=box_client_ccg, shared_link_url=shared_link_url, password=password
+    )
+    find_error = find_response.get("error")
+    find_message = find_response.get("message")
+    found_file = find_response.get("file")
+
+    assert find_error is None
+    assert find_message is None
+    assert found_file is not None
+    assert isinstance(found_file, dict)
+    assert found_file.get("id") == file_id
+    assert found_file.get("name") == test_file.name

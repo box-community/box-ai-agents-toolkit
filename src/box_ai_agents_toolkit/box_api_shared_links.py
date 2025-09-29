@@ -23,7 +23,7 @@ def _access_to_enum(access: str) -> AddShareLinkToFileSharedLinkAccessField:
         raise ValueError(f"Invalid access: {access}. Accepted access: {valid_access}")
 
 
-def box_shared_link_file_create(
+def box_shared_link_file_create_or_update(
     client: BoxClient,
     file_id: str,
     access: Optional[str] = "company",
@@ -43,7 +43,7 @@ def box_shared_link_file_create(
         can_download (Optional[bool]): Whether the shared link can be downloaded. Defaults to True.
         can_preview (Optional[bool]): Whether the shared link can be previewed. Defaults to True.
         can_edit (Optional[bool]): Whether the shared link can be edited. Defaults to False.
-        password (Optional[str]): Password for the shared link.
+        password (Optional[str]): Password for the shared link. Passwords must now be at least eight characters long and include a number, upper case letter, or a non-numeric or non-alphabetic character. A password can only be set when access is set to open.
         vanity_name (Optional[str]): Vanity name for the shared link.
         unshared_at (Optional[datetime]): Date and time when the shared link should be unshared.
     Returns:
@@ -130,6 +130,33 @@ def box_shared_link_file_remove(
             file_id=file_id, fields=fields, shared_link=shared_link
         )
         return {"message": "Shared link removed successfully."}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_shared_link_file_find_by_shared_link_url(
+    client: BoxClient,
+    shared_link_url: str,
+    password: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Get the file details using a shared link URL in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        shared_link_url (str): Shared link URL to get the file details for.
+        password (Optional[str]): Password for the shared link, if applicable.
+    Returns:
+        Dict[str, Any]: Dictionary containing file details or error message.
+    """
+
+    shared_link_url = f"shared_link={shared_link_url}"
+    if password is not None:
+        shared_link_url = f"{shared_link_url}&shared_link_password={password}"
+    try:
+        response = client.shared_links_files.find_file_for_shared_link(
+            boxapi=shared_link_url,
+        )
+        return {"file": response.to_dict()}
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}
