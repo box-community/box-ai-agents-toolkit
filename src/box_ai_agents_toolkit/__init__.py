@@ -104,6 +104,10 @@ from .box_api_shared_links import (
     box_shared_link_file_create_or_update,
     box_shared_link_file_remove,
     box_shared_link_file_find_by_shared_link_url,
+    box_shared_link_folder_create_or_update,
+    box_shared_link_folder_get,
+    box_shared_link_folder_remove,
+    box_shared_link_folder_find_by_shared_link_url,
 )
 
 __all__ = [
@@ -180,4 +184,8 @@ __all__ = [
     "box_shared_link_file_create_or_update",
     "box_shared_link_file_remove",
     "box_shared_link_file_find_by_shared_link_url",
+    "box_shared_link_folder_create_or_update",
+    "box_shared_link_folder_get",
+    "box_shared_link_folder_remove",
+    "box_shared_link_folder_find_by_shared_link_url",
 ]
