@@ -99,6 +99,12 @@ from .box_api_collaborations import (
     box_collaboration_update,
 )
 
+from .box_api_shared_links import (
+    box_shared_link_file_get,
+    box_shared_link_file_create,
+    box_shared_link_file_remove,
+)
+
 __all__ = [
     "BoxClient",
     "BoxSDKError",
@@ -169,4 +175,7 @@ __all__ = [
     "box_collaboration_folder_group_by_group_id",
     "box_collaboration_delete",
     "box_collaboration_update",
+    "box_shared_link_file_get",
+    "box_shared_link_file_create",
+    "box_shared_link_file_remove",
 ]
