@@ -11,7 +11,6 @@ from box_sdk_gen import (
     CreateWebLinkParent,
 )
 from .conftest import TestData
-import pytest
 
 
 def _create_test_web_link(

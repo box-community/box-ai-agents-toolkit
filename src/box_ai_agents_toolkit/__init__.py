@@ -108,6 +108,10 @@ from .box_api_shared_links import (
     box_shared_link_folder_get,
     box_shared_link_folder_remove,
     box_shared_link_folder_find_by_shared_link_url,
+    box_shared_link_web_link_create_or_update,
+    box_shared_link_web_link_get,
+    box_shared_link_web_link_remove,
+    box_shared_link_web_link_find_by_shared_link_url,
 )
 
 from .box_api_weblink import (
@@ -199,4 +203,8 @@ __all__ = [
     "box_web_link_get_by_id",
     "box_web_link_update_by_id",
     "box_web_link_delete_by_id",
+    "box_shared_link_web_link_create_or_update",
+    "box_shared_link_web_link_get",
+    "box_shared_link_web_link_remove",
+    "box_shared_link_web_link_find_by_shared_link_url",
 ]

@@ -7,9 +7,16 @@ from box_ai_agents_toolkit import (
     box_shared_link_folder_get,
     box_shared_link_folder_remove,
     box_shared_link_folder_find_by_shared_link_url,
+    box_shared_link_web_link_create_or_update,
+    box_shared_link_web_link_get,
+    box_shared_link_web_link_remove,
+    box_shared_link_web_link_find_by_shared_link_url,
 )
 from box_sdk_gen import (
     BoxClient,
+    Folder,
+    WebLink,
+    CreateWebLinkParent,
 )
 from .conftest import TestData
 import pytest
@@ -809,3 +816,402 @@ def test_box_shared_link_folder_find_by_shared_link_url_with_password(
     assert isinstance(found_folder, dict)
     assert found_folder.get("id") == folder_id
     assert found_folder.get("name") == test_folder.name
+
+
+def _create_test_web_link(
+    client: BoxClient, parent_folder: Folder, url: str
+) -> WebLink:
+    parent_folder_id = parent_folder.id
+
+    return client.web_links.create_web_link(
+        url=url,
+        parent=CreateWebLinkParent(id=parent_folder_id),
+    )
+
+
+@pytest.mark.order(index=210)
+def test_box_shared_link_web_link_get_no_shared_link(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # get the shared link for this web link - should be none
+    response = box_shared_link_web_link_get(
+        client=box_client_ccg, web_link_id=web_link_id
+    )
+
+    error = response.get("error")
+    message = response.get("message")
+    shared_link = response.get("shared_link")
+
+    assert error is None
+    assert message is not None
+    assert shared_link is None
+
+    assert message == "No shared link found for this web link."
+
+
+@pytest.mark.order(index=220)
+def test_box_shared_link_web_link_create(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-create.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # Create a shared link
+    response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="company",
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+
+    error = response.get("error")
+    message = response.get("message")
+    shared_link = response.get("shared_link")
+
+    assert error is None
+    assert message is None
+    assert shared_link is not None
+    assert isinstance(shared_link, dict)
+
+    assert "url" in shared_link
+    # assert "download_url" in shared_link
+    # assert "vanity_url" in shared_link
+    # assert "is_password_enabled" in shared_link
+    # assert "unshared_at" in shared_link
+    # assert "permissions" in shared_link
+
+    permissions = shared_link.get("permissions")
+    assert permissions is not None
+    assert isinstance(permissions, dict)
+    assert permissions.get("can_download") is True
+    assert permissions.get("can_preview") is True
+    assert permissions.get("can_edit") is False
+
+    # delete web link
+    box_client_ccg.web_links.delete_web_link_by_id(web_link_id=web_link_id)
+
+
+@pytest.mark.order(index=240)
+def test_box_shared_link_web_link_create_with_errors(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-create-error.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # Test with invalid access level
+    response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="invalid_access",  # Invalid access level
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+
+    error = response.get("error")
+    shared_link = response.get("shared_link")
+
+    assert error is not None
+    assert "Invalid access" in error
+    assert shared_link is None
+
+    # Test with invalid web link ID
+    response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id="invalid_web_link_id",  # Invalid web link ID
+        access="company",
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+
+    error = response.get("error")
+    shared_link = response.get("shared_link")
+
+    assert error is not None
+    # why is the API returning a 405 here? Should be a 404 not found
+    assert "405 Method Not Allowed" in error
+    assert shared_link is None
+
+    # delete web link
+    box_client_ccg.web_links.delete_web_link_by_id(web_link_id=web_link_id)
+
+
+@pytest.mark.order(index=250)
+def test_box_shared_link_web_link_get_existing_shared_link(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-get.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # First, create a shared link to ensure one exists
+    create_response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="company",
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+
+    # Get the shared link
+    get_response = box_shared_link_web_link_get(
+        client=box_client_ccg, web_link_id=web_link_id
+    )
+    get_error = get_response.get("error")
+    get_message = get_response.get("message")
+    get_shared_link = get_response.get("shared_link")
+
+    assert get_error is None
+    assert get_message is None
+    assert get_shared_link is not None
+    assert get_shared_link == shared_link
+
+    # Clean up by deleting the web link
+    box_client_ccg.web_links.delete_web_link_by_id(web_link_id=web_link_id)
+
+
+@pytest.mark.order(index=260)
+def test_box_shared_link_web_link_remove(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-remove.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # First, create a shared link to ensure one exists
+    create_response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="company",
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+
+    # Now, remove the shared link using the function under test
+    remove_response = box_shared_link_web_link_remove(
+        client=box_client_ccg, web_link_id=web_link_id
+    )
+    remove_error = remove_response.get("error")
+    remove_message = remove_response.get("message")
+
+    assert remove_error is None
+    assert remove_message == "Shared link removed successfully."
+
+    # Verify the shared link has been removed
+    get_response = box_shared_link_web_link_get(
+        client=box_client_ccg, web_link_id=web_link_id
+    )
+    get_error = get_response.get("error")
+    get_message = get_response.get("message")
+    get_shared_link = get_response.get("shared_link")
+
+    assert get_error is None
+    assert get_shared_link is None
+    assert get_message == "No shared link found for this web link."
+
+    # Test removing shared link from a web link with no shared link return no error or message
+    remove_response = box_shared_link_web_link_remove(
+        client=box_client_ccg, web_link_id=web_link_id
+    )
+
+    remove_error = remove_response.get("error")
+    remove_message = remove_response.get("message")
+    remove_shared_link = remove_response.get("shared_link")
+
+    assert remove_error is None
+    assert remove_shared_link is None
+    assert remove_message is not None
+    assert remove_message == "Shared link removed successfully."
+
+    # Test removing shared link from a non-existent web link
+    remove_response_error = box_shared_link_web_link_remove(
+        client=box_client_ccg, web_link_id="invalid_id"
+    )
+    remove_error = remove_response_error.get("error")
+    remove_message = remove_response_error.get("message")
+    remove_shared_link = remove_response_error.get("shared_link")
+
+    assert remove_error is not None
+    assert "405 Method Not Allowed" in remove_error
+    assert remove_message is None
+    assert remove_shared_link is None
+
+
+@pytest.mark.order(index=270)
+def test_box_shared_link_web_link_find_by_shared_link_url(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-find.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    # First, create a shared link to ensure one exists
+    create_response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="company",
+        password=None,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+    assert "url" in shared_link
+
+    shared_link_url = shared_link.get("url")
+    assert shared_link_url is not None
+
+    # Now, find the web link by the shared link URL using the function under test
+    find_response = box_shared_link_web_link_find_by_shared_link_url(
+        client=box_client_ccg, shared_link_url=shared_link_url, password=None
+    )
+    find_error = find_response.get("error")
+    find_message = find_response.get("message")
+    found_web_link = find_response.get("web_link")
+
+    assert find_error is None
+    assert find_message is None
+    assert found_web_link is not None
+    assert isinstance(found_web_link, dict)
+    assert found_web_link.get("id") == web_link_id
+    assert found_web_link.get("name") == test_web_link.name
+
+    # Clean up by deleting the web link
+    box_client_ccg.web_links.delete_web_link_by_id(web_link_id=web_link_id)
+
+    # test with invalid shared link URL
+    find_response_no_link = box_shared_link_web_link_find_by_shared_link_url(
+        client=box_client_ccg,
+        shared_link_url="https://box.com/s/invalid",
+        password=None,
+    )
+    find_error = find_response_no_link.get("error")
+    find_message = find_response_no_link.get("message")
+    found_web_link = find_response_no_link.get("web_link")
+
+    assert find_error is not None
+    assert "404 Not Found" in find_error
+    assert find_message is None
+    assert found_web_link is None
+
+
+@pytest.mark.order(index=280)
+def test_box_shared_link_web_link_find_by_shared_link_url_with_password(
+    box_client_ccg: BoxClient, shared_link_test_files: TestData
+):
+    # create a test web link
+    test_web_link = _create_test_web_link(
+        client=box_client_ccg,
+        parent_folder=shared_link_test_files.test_folder,
+        url="https://www.box-share-weblink-find-password.com",
+    )
+    assert test_web_link is not None
+    assert test_web_link.id is not None
+    web_link_id = test_web_link.id
+
+    password = "TestPassword123!"
+
+    # First, create a shared link with a password to ensure one exists
+    create_response = box_shared_link_web_link_create_or_update(
+        client=box_client_ccg,
+        web_link_id=web_link_id,
+        access="open",
+        password=password,
+        vanity_name=None,
+        unshared_at=None,
+    )
+    create_error = create_response.get("error")
+    message = create_response.get("message")
+    shared_link = create_response.get("shared_link")
+
+    assert create_error is None
+    assert message is None
+    assert shared_link is not None
+    assert "url" in shared_link
+
+    shared_link_url = shared_link.get("url")
+    assert shared_link_url is not None
+
+    # Now, find the web link by the shared link URL and correct password using the function under test
+    find_response = box_shared_link_web_link_find_by_shared_link_url(
+        client=box_client_ccg, shared_link_url=shared_link_url, password=password
+    )
+    find_error = find_response.get("error")
+    find_message = find_response.get("message")
+    found_web_link = find_response.get("web_link")
+
+    assert find_error is None
+    assert find_message is None
+    assert found_web_link is not None
+    assert isinstance(found_web_link, dict)
+    assert found_web_link.get("id") == web_link_id
+    assert found_web_link.get("name") == test_web_link.name
+
+    # Clean up by deleting the web link
+    box_client_ccg.web_links.delete_web_link_by_id(web_link_id=web_link_id)

@@ -11,6 +11,8 @@ from box_sdk_gen import (
     AddShareLinkToFolderSharedLink,
     AddShareLinkToFolderSharedLinkAccessField,
     AddShareLinkToFolderSharedLinkPermissionsField,
+    AddShareLinkToWebLinkSharedLink,
+    AddShareLinkToWebLinkSharedLinkAccessField,
 )
 
 from .box_api_util_generic import log_box_api_error, log_generic_error
@@ -311,6 +313,109 @@ def box_shared_link_folder_find_by_shared_link_url(
             boxapi=shared_link_url,
         )
         return {"folder": response.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def _access_web_link_to_enum(access: str) -> AddShareLinkToWebLinkSharedLinkAccessField:
+    access = access.lower()
+    valid_access = [
+        access.value for access in AddShareLinkToWebLinkSharedLinkAccessField
+    ]
+    if access in valid_access:
+        return AddShareLinkToWebLinkSharedLinkAccessField(access)
+    else:
+        log_generic_error(ValueError(f"Invalid access: {access}"))
+        raise ValueError(f"Invalid access: {access}. Accepted access: {valid_access}")
+
+
+def box_shared_link_web_link_create_or_update(
+    client: BoxClient,
+    web_link_id: str,
+    access: Optional[str] = "company",
+    password: Optional[str] = None,
+    vanity_name: Optional[str] = None,
+    unshared_at: Optional[datetime] = None,
+) -> Dict[str, Any]:
+    fields = "shared_link"
+
+    access_enum: Optional[AddShareLinkToWebLinkSharedLinkAccessField] = None
+    if access:
+        try:
+            access_enum = _access_web_link_to_enum(access)
+        except ValueError as e:
+            return {"error": str(e)}
+
+    permissions = None
+
+    shared_link = AddShareLinkToWebLinkSharedLink(
+        access=access_enum,
+        password=password,
+        vanity_name=vanity_name,
+        unshared_at=unshared_at,
+        permissions=permissions,
+    )
+
+    try:
+        response = client.shared_links_web_links.add_share_link_to_web_link(
+            web_link_id=web_link_id, fields=fields, shared_link=shared_link
+        )
+        if not response.shared_link:
+            return {"message": "Unable to create shared link."}
+        return {"shared_link": response.shared_link.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_shared_link_web_link_get(
+    client: BoxClient,
+    web_link_id: str,
+) -> Dict[str, Any]:
+    fields = "shared_link"
+
+    try:
+        response = client.shared_links_web_links.get_shared_link_for_web_link(
+            web_link_id=web_link_id, fields=fields
+        )
+        if not response.shared_link:
+            return {"message": "No shared link found for this web link."}
+        return {"shared_link": response.shared_link.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_shared_link_web_link_remove(
+    client: BoxClient,
+    web_link_id: str,
+) -> Dict[str, Any]:
+    fields = "shared_link"
+    shared_link = create_null()
+    try:
+        client.shared_links_web_links.remove_shared_link_from_web_link(
+            web_link_id=web_link_id, fields=fields, shared_link=shared_link
+        )
+        return {"message": "Shared link removed successfully."}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_shared_link_web_link_find_by_shared_link_url(
+    client: BoxClient,
+    shared_link_url: str,
+    password: Optional[str] = None,
+) -> Dict[str, Any]:
+    shared_link_url = f"shared_link={shared_link_url}"
+    if password is not None:
+        shared_link_url = f"{shared_link_url}&shared_link_password={password}"
+    try:
+        response = client.shared_links_web_links.find_web_link_for_shared_link(
+            boxapi=shared_link_url,
+        )
+        return {"web_link": response.to_dict()}
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}

@@ -1,5 +1,4 @@
 from typing import Any, Dict, Optional
-from datetime import datetime
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
@@ -7,7 +6,7 @@ from box_sdk_gen import (
     UpdateWebLinkByIdParent,
 )
 
-from .box_api_util_generic import log_box_api_error, log_generic_error
+from .box_api_util_generic import log_box_api_error
 
 
 def box_web_link_create(
