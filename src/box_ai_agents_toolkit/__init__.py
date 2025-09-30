@@ -110,6 +110,13 @@ from .box_api_shared_links import (
     box_shared_link_folder_find_by_shared_link_url,
 )
 
+from .box_api_weblink import (
+    box_web_link_create,
+    box_web_link_get_by_id,
+    box_web_link_update_by_id,
+    box_web_link_delete_by_id,
+)
+
 __all__ = [
     "BoxClient",
     "BoxSDKError",
@@ -188,4 +195,8 @@ __all__ = [
     "box_shared_link_folder_get",
     "box_shared_link_folder_remove",
     "box_shared_link_folder_find_by_shared_link_url",
+    "box_web_link_create",
+    "box_web_link_get_by_id",
+    "box_web_link_update_by_id",
+    "box_web_link_delete_by_id",
 ]

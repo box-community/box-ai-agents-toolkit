@@ -233,3 +233,21 @@ def shared_link_test_files(box_client_ccg: BoxClient):
 
     # clean up temporary folder
     box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def web_link_test_data(box_client_ccg: BoxClient):
+    # create temporary folder
+    folder_name = f"Pytest Web Links  {uuid.uuid4()}"
+    parent = CreateFolderParent(id="0")  # root folder
+    folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
+
+    test_data = TestData(
+        test_folder=folder,
+    )
+
+    # yield the data for the test
+    yield test_data
+
+    # clean up temporary folder
+    box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
