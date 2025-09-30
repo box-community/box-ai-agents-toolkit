@@ -5,6 +5,7 @@
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "cSpell.words": [
+        "boxapi",
         "boxdemo",
         "BOXNOTE",
         "DICM",
@@ -19,6 +20,7 @@
         "INDT",
         "usemarker",
         "WEBDOC",
+        "weblink",
         "XLSB"
     ]
 }

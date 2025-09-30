@@ -1,5 +1,5 @@
 # Changelog
-## 0.0.49 - 2025-09-17
+
 ## 0.0.53 - 2025-09-25
 
 * Merge pull request #7 from box-community/rb/collaboration (41d4e36)

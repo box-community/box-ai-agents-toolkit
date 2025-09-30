@@ -1,3 +1,4 @@
+import pytest
 from box_sdk_gen import BoxClient
 
 from box_ai_agents_toolkit import (
@@ -215,6 +216,9 @@ def test_box_ai_extract_structured_using_template(box_client_ccg: BoxClient):
     assert metadata.get("paymentTerms") is not None
 
 
+@pytest.mark.skip(
+    reason="Skipping enhanced structured extraction tests since API is broken"
+)
 def test_box_ai_extract_structured_enhanced_using_fields(box_client_ccg: BoxClient):
     """Test the box_ai_extract_structured_enhanced_using_fields function."""
     fields = [
@@ -247,6 +251,9 @@ def test_box_ai_extract_structured_enhanced_using_fields(box_client_ccg: BoxClie
     assert metadata.get("number") is not None
 
 
+@pytest.mark.skip(
+    reason="Skipping enhanced structured extraction tests since API is broken"
+)
 def test_box_ai_extract_structured_enhanced_using_template(box_client_ccg: BoxClient):
     """Test the box_ai_extract_structured_enhanced_using_template function."""
     response = box_ai_extract_structured_enhanced_using_template(
