@@ -4,10 +4,23 @@ version = "0.0.54"
 description = "A python library for building AI agents for Box"
 license = "MIT"
 readme = "README.md"
-keywords = [ "box", "box.com", "ai", "agent", "toolkit", "library", "box ai", "box api", "box ai api",]
-classifiers = [ "Development Status :: 4 - Beta", "Programming Language :: Python",]
+keywords = [
+    "box",
+    "box.com",
+    "ai",
+    "agent",
+    "toolkit",
+    "library",
+    "box ai",
+    "box api",
+    "box ai api",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python",
+]
 requires-python = ">=3.11"
-dependencies = [ "box-sdk-gen>=1.12.0", "python-dotenv>=1.0.1",]
+dependencies = ["box-sdk-gen>=1.17.0", "python-dotenv>=1.0.1"]
 [[project.authors]]
 name = "Box Developer Relations"
 email = "devrel@box.com"
@@ -17,11 +30,11 @@ name = "Box Developer Relations"
 email = "devrel@box.com"
 
 [build-system]
-requires = [ "hatchling",]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [dependency-groups]
-dev = [ "pytest>=8.3.5", "pytest-cov>=6.2.1", "ruff>=0.9.10", "toml>=0.10.2",]
+dev = ["pytest>=8.3.5", "pytest-cov>=6.2.1", "ruff>=0.9.10", "toml>=0.10.2"]
 
 [project.urls]
 Repository = "https://github.com/box-community/box-ai-agents-toolkit.git"
