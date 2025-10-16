@@ -1,9 +1,9 @@
 import time
+import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-import uuid
 
 import pytest
 from box_sdk_gen import (

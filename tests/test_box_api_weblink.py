@@ -1,15 +1,17 @@
-from box_ai_agents_toolkit import (
-    box_web_link_create,
-    box_web_link_get_by_id,
-    box_web_link_update_by_id,
-    box_web_link_delete_by_id,
-)
 from box_sdk_gen import (
     BoxClient,
+    CreateWebLinkParent,
     Folder,
     WebLink,
-    CreateWebLinkParent,
 )
+
+from box_ai_agents_toolkit import (
+    box_web_link_create,
+    box_web_link_delete_by_id,
+    box_web_link_get_by_id,
+    box_web_link_update_by_id,
+)
+
 from .conftest import TestData
 
 
