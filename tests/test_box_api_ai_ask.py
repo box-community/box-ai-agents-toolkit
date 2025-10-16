@@ -14,7 +14,7 @@ from box_ai_agents_toolkit import (
 
 FILE_A_ID = "1918161198980"  # Policy
 FILE_B_ID = "1918164583027"  # Claim
-HUB_ID = "370336300"
+HUB_ID = "621688534"
 TEMPLATE_KEY = "acmePolicy"  # Example template key for structured extraction
 
 
