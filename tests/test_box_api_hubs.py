@@ -286,6 +286,11 @@ def test_box_hub_search(box_client_ccg: BoxClient):
         for hub_id in created_hub_id:
             box_client_ccg.hubs.delete_hub_by_id_v2025_r0(hub_id)
 
+    # Try to search for a hub that does not exist
+    result = box_hub_list(box_client_ccg, query="ThisHubDoesNotExist12345")
+    assert "message" in result, "Expected message when no hubs found."
+    assert "error" not in result, f"Unexpected error: {result.get('error')}"
+
     # try to search using an order that does not exist
     result = box_hub_list(box_client_ccg, sort="invalid_sort", direction="DESC")
     assert "error" in result, "Expected error when using invalid sort."
