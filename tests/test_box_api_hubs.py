@@ -13,7 +13,12 @@ from box_ai_agents_toolkit import (
     box_hub_get,
     box_hub_list,
     box_hub_update,
+    box_hub_items_list,
+    box_hub_item_add,
+    box_hub_item_remove,
 )
+
+from tests.conftest import TestData
 
 # TODO: Follow the pattern in conftest.py to create a fixture that creates and yields multiple hubs for testing
 # TODO: Consider removing extra slow tests or marking them as slow tests only to be run manually or in specific scenarios
@@ -305,3 +310,81 @@ def test_box_hub_search(box_client_ccg: BoxClient):
     )
     assert "error" in result, "Expected error when using invalid direction."
     assert "message" not in result, f"Unexpected message: {result.get('message')}"
+
+
+def test_box_hub_items_list_and_add_remove(
+    box_client_ccg: BoxClient, box_hub_test_data: TestData
+):
+    # test empty list of items
+    hub_id = box_hub_test_data.test_hub.id if box_hub_test_data.test_hub else None
+    assert hub_id is not None, "Hub test data creation failed."
+
+    result = box_hub_items_list(box_client_ccg, hub_id)
+
+    # expected result is no error, no hub items, and message indicating no items
+    assert "error" not in result, f"Error occurred: {result.get('error')}"
+    assert "hub_items" not in result, f"Hub items list failed: {result}"
+    assert "message" in result, "Expected message when no hub items found."
+
+    # test adding a file to the hub
+    file_to_add = (
+        box_hub_test_data.test_files[0] if box_hub_test_data.test_files else None
+    )
+    assert file_to_add is not None, "File test data creation failed."
+
+    result = box_hub_item_add(box_client_ccg, hub_id, file_to_add.id, "file")
+
+    # expected result is no error, hub item with correct details, no message
+    assert "error" not in result, f"Error occurred: {result.get('error')}"
+    assert "message" not in result, f"Unexpected message: {result.get('message')}"
+
+    # successful result looks like this:
+    # "operations": [
+    #     {
+    #     "action": "add",
+    #     "error": "Item not found",
+    #     "item": {
+    #         "id": "42037322",
+    #         "type": "file"
+    #     },
+    #     "status": 200
+    #     }
+    # ]
+    # }
+
+    assert "operations" in result, f"Hub item add failed: {result}"
+    assert len(result["operations"]) == 1, (
+        f"Expected 1 operation, got {len(result['operations'])}"
+    )
+    operation = result["operations"][0]
+    assert operation["action"] == "add", f"Unexpected action: {operation['action']}"
+    assert operation["status"] == 200, f"Unexpected status: {operation['status']}"
+    assert operation["item"]["id"] == file_to_add.id, (
+        f"Unexpected item ID: {operation['item']['id']}"
+    )
+    assert operation["item"]["type"] == "file", (
+        f"Unexpected item type: {operation['item']['type']}"
+    )
+
+    # test with hardcoded existing hub id
+    hub_id = "621688534"
+    result = box_hub_items_list(box_client_ccg, hub_id)
+    print(result.to_dict())
+
+    # test listing items again, should have 1 item now
+    result = box_hub_items_list(box_client_ccg, hub_id)
+
+    # expected result is no error, 1 hub item with correct details, no message
+    assert "error" not in result, f"Error occurred: {result.get('error')}"
+    assert "message" not in result, f"Unexpected message: {result.get('message')}"
+    assert "hub_items" in result, f"Hub items list failed: {result}"
+    assert len(result["hub_items"]) == 1, (
+        f"Expected 1 hub item, got {len(result['hub_items'])}"
+    )
+    hub_item = result["hub_items"][0]
+    assert hub_item["item"]["id"] == file_to_add.id, (
+        f"Unexpected hub item ID: {hub_item['item']['id']}"
+    )
+    assert hub_item["item"]["type"] == "file", (
+        f"Unexpected hub item type: {hub_item['item']['type']}"
+    )

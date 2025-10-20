@@ -4,6 +4,11 @@ from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
     GetHubsV2025R0Direction,
+    HubItemOperationV2025R0,
+    HubItemOperationV2025R0ActionField,
+    FileReferenceV2025R0,
+    FolderReferenceV2025R0,
+    WeblinkReferenceV2025R0,
 )
 
 from .box_api_util_generic import log_box_api_error, log_generic_error
@@ -208,6 +213,129 @@ def box_hub_list(
                 marker = hubs.next_marker if hubs.next_marker else None
 
         return {"hubs": result}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_items_list(
+    client: BoxClient,
+    hub_id: str,
+    limit: int = 1000,
+) -> Dict[str, Any]:
+    """List all items in a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to retrieve items from.
+        limit (int): The maximum number of items to retrieve.
+    Returns:
+        Dict[str, Any]: Dictionary containing list of items or error message.
+    """
+
+    marker = None
+
+    try:
+        items = client.hub_items.get_hub_items_v2025_r0(
+            hub_id=hub_id,
+            marker=marker,
+            limit=limit,
+        )
+
+        if not items.entries or len(items.entries) == 0:
+            return {"message": "No items found in the hub."}
+        else:
+            result = [item.to_dict() for item in items.entries] if items else []
+
+        # check if api returned a marker for next page
+        if items.next_marker:
+            marker = items.next_marker
+            while marker:
+                items = client.hub_items.get_hub_items_v2025_r0(
+                    hub_id=hub_id,
+                    marker=marker,
+                    limit=limit,
+                )
+                if items.entries:
+                    result.extend(item.to_dict() for item in items.entries)
+                marker = items.next_marker if items.next_marker else None
+
+        return {"hub items": result}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_item_add(
+    client: BoxClient,
+    hub_id: str,
+    item_id: str,
+    item_type: str,
+) -> Dict[str, Any]:
+    """Add an item to a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to add the item to.
+        item_id (str): The ID of the item to add.
+        item_type (str): The type of the item to add (e.g., "file" or "folder").
+    Returns:
+        Dict[str, Any]: Dictionary containing added item details or error message.
+    """
+    item = (
+        FileReferenceV2025R0(id=item_id)
+        if item_type.lower() == "file"
+        else FolderReferenceV2025R0(id=item_id)
+        if item_type.lower() == "folder"
+        else WeblinkReferenceV2025R0(id=item_id)
+    )
+    action = HubItemOperationV2025R0ActionField.ADD
+    operation = HubItemOperationV2025R0(
+        action=action,
+        item=item,
+    )
+    try:
+        hub_item = client.hub_items.manage_hub_items_v2025_r0(
+            hub_id=hub_id,
+            operations=[operation],
+        )
+        return hub_item.to_dict()
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_item_remove(
+    client: BoxClient,
+    hub_id: str,
+    item_id: str,
+    item_type: str,
+) -> Dict[str, Any]:
+    """Remove an item from a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to remove the item from.
+        item_id (str): The ID of the item to remove.
+        item_type (str): The type of the item to remove (e.g., "file" or "folder").
+    Returns:
+        Dict[str, Any]: Dictionary containing removed item details or error message.
+    """
+    item = (
+        FileReferenceV2025R0(id=item_id)
+        if item_type.lower() == "file"
+        else FolderReferenceV2025R0(id=item_id)
+        if item_type.lower() == "folder"
+        else WeblinkReferenceV2025R0(id=item_id)
+    )
+    action = HubItemOperationV2025R0ActionField.REMOVE
+    operation = HubItemOperationV2025R0(
+        action=action,
+        item=item,
+    )
+    try:
+        hub_item = client.hub_items.manage_hub_items_v2025_r0(
+            hub_id=hub_id,
+            operations=[operation],
+        )
+        return hub_item.to_dict()
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}
