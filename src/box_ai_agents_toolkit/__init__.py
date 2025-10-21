@@ -89,6 +89,14 @@ from .box_api_hubs import (
     box_hub_items_list,
     box_hub_item_add,
     box_hub_item_remove,
+    # hub collaborations
+    box_hub_collaboration_add_group_by_id,
+    box_hub_collaboration_add_user_by_email,
+    box_hub_collaboration_add_user_by_id,
+    box_hub_collaboration_remove,
+    box_hub_collaboration_update,
+    box_hub_collaborations_list,
+    box_hub_collaboration_details,
 )
 
 from .box_api_metadata_template import (
@@ -225,4 +233,11 @@ __all__ = [
     "box_hub_items_list",
     "box_hub_item_add",
     "box_hub_item_remove",
+    "box_hub_collaboration_add_group_by_id",
+    "box_hub_collaboration_add_user_by_email",
+    "box_hub_collaboration_add_user_by_id",
+    "box_hub_collaboration_remove",
+    "box_hub_collaboration_update",
+    "box_hub_collaborations_list",
+    "box_hub_collaboration_details",
 ]

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict, Optional
 
 from box_sdk_gen import (
@@ -9,9 +10,18 @@ from box_sdk_gen import (
     FileReferenceV2025R0,
     FolderReferenceV2025R0,
     WeblinkReferenceV2025R0,
+    CreateHubCollaborationV2025R0AccessibleBy,
+    CreateHubCollaborationV2025R0Hub,
 )
 
 from .box_api_util_generic import log_box_api_error, log_generic_error
+
+
+class HubCollaborationAccessibleByType(str, Enum):
+    """Enum for hub collaboration accessible by types."""
+
+    USER = "user"
+    GROUP = "group"
 
 
 def _direction_to_enum(direction: str) -> GetHubsV2025R0Direction:
@@ -167,7 +177,7 @@ def box_hub_list(
         client (BoxClient): Authenticated Box client.
         query (Optional[str]): Search query to filter Hubs by title or description.
         scope (Optional[str]): The scope of the Box Hubs to retrieve. Possible values include editable, view_only, and all. Default is all.
-        sort (Optional[str]): he field to sort results by. Possible values include name, updated_at, last_accessed_at, view_count, and relevance. Default is relevance.
+        sort (Optional[str]): The field to sort results by. Possible values include name, updated_at, last_accessed_at, view_count, and relevance. Default is relevance.
         direction (str): Sort direction, either "ASC" or "DESC". Default is "ASC".
     Returns:
         Dict[str, Any]: Dictionary containing list of Hubs or error message.
@@ -276,17 +286,21 @@ def box_hub_item_add(
         client (BoxClient): Authenticated Box client.
         hub_id (str): The ID of the Hub to add the item to.
         item_id (str): The ID of the item to add.
-        item_type (str): The type of the item to add (e.g., "file" or "folder").
+        item_type (str): The type of the item to add (e.g., "file" or "folder" or "web_link").
     Returns:
         Dict[str, Any]: Dictionary containing added item details or error message.
     """
-    item = (
-        FileReferenceV2025R0(id=item_id)
-        if item_type.lower() == "file"
-        else FolderReferenceV2025R0(id=item_id)
-        if item_type.lower() == "folder"
-        else WeblinkReferenceV2025R0(id=item_id)
-    )
+    match item_type.lower():
+        case "file":
+            item = FileReferenceV2025R0(id=item_id)
+        case "folder":
+            item = FolderReferenceV2025R0(id=item_id)
+        case "web_link":
+            item = WeblinkReferenceV2025R0(id=item_id)
+        case _:
+            log_generic_error(ValueError(f"Invalid item type: {item_type}"))
+            raise ValueError(f"Invalid item type: {item_type}")
+
     action = HubItemOperationV2025R0ActionField.ADD
     operation = HubItemOperationV2025R0(
         action=action,
@@ -314,17 +328,21 @@ def box_hub_item_remove(
         client (BoxClient): Authenticated Box client.
         hub_id (str): The ID of the Hub to remove the item from.
         item_id (str): The ID of the item to remove.
-        item_type (str): The type of the item to remove (e.g., "file" or "folder").
+        item_type (str): The type of the item to remove (e.g., "file" or "folder" or "web_link").
     Returns:
         Dict[str, Any]: Dictionary containing removed item details or error message.
     """
-    item = (
-        FileReferenceV2025R0(id=item_id)
-        if item_type.lower() == "file"
-        else FolderReferenceV2025R0(id=item_id)
-        if item_type.lower() == "folder"
-        else WeblinkReferenceV2025R0(id=item_id)
-    )
+    match item_type.lower():
+        case "file":
+            item = FileReferenceV2025R0(id=item_id)
+        case "folder":
+            item = FolderReferenceV2025R0(id=item_id)
+        case "web_link":
+            item = WeblinkReferenceV2025R0(id=item_id)
+        case _:
+            log_generic_error(ValueError(f"Invalid item type: {item_type}"))
+            raise ValueError(f"Invalid item type: {item_type}")
+
     action = HubItemOperationV2025R0ActionField.REMOVE
     operation = HubItemOperationV2025R0(
         action=action,
@@ -336,6 +354,243 @@ def box_hub_item_remove(
             operations=[operation],
         )
         return hub_item.to_dict()
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def _create_hub_collaboration(
+    client: BoxClient,
+    hub_id: str,
+    accessible_by_type: HubCollaborationAccessibleByType,
+    role: str,
+    accessible_by_id: Optional[str] = None,
+    accessible_by_login: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Private helper to create a hub collaboration.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to add the collaboration to.
+        accessible_by_type (HubCollaborationAccessibleByType): The type of the collaborator.
+        role (str): The level of access granted to a Box Hub. Possible values are editor, viewer, and co-owner.
+        accessible_by_id (Optional[str]): The ID of the user or group.
+        accessible_by_login (Optional[str]): The email of the user.
+    Returns:
+        Dict[str, Any]: Dictionary containing added collaboration details or error message.
+    """
+    hub = CreateHubCollaborationV2025R0Hub(id=hub_id)
+    accessible_by = CreateHubCollaborationV2025R0AccessibleBy(
+        type=accessible_by_type.value,
+        id=accessible_by_id,
+        login=accessible_by_login,
+    )
+    try:
+        collaboration = client.hub_collaborations.create_hub_collaboration_v2025_r0(
+            hub=hub,
+            accessible_by=accessible_by,
+            role=role,
+        )
+        return collaboration.to_dict()
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_collaborations_list(
+    client: BoxClient,
+    hub_id: str,
+    limit: int = 1000,
+) -> Dict[str, Any]:
+    """List all collaborations in a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to retrieve collaborations from.
+        limit (int): The maximum number of collaborations to retrieve.
+    Returns:
+        Dict[str, Any]: Dictionary containing list of collaborations or error message.
+    """
+
+    marker = None
+
+    try:
+        collaborations = client.hub_collaborations.get_hub_collaborations_v2025_r0(
+            hub_id=hub_id,
+            marker=marker,
+            limit=limit,
+        )
+
+        if not collaborations.entries or len(collaborations.entries) == 0:
+            return {"message": "No collaborations found in the hub."}
+        else:
+            result = (
+                [collaboration.to_dict() for collaboration in collaborations.entries]
+                if collaborations
+                else []
+            )
+
+        # check if api returned a marker for next page
+        if collaborations.next_marker:
+            marker = collaborations.next_marker
+            while marker:
+                collaborations = (
+                    client.hub_collaborations.get_hub_collaborations_v2025_r0(
+                        hub_id=hub_id,
+                        marker=marker,
+                        limit=limit,
+                    )
+                )
+                if collaborations.entries:
+                    result.extend(
+                        collaboration.to_dict()
+                        for collaboration in collaborations.entries
+                    )
+                marker = (
+                    collaborations.next_marker if collaborations.next_marker else None
+                )
+
+        return {"hub collaborations": result}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_collaboration_add_user_by_id(
+    client: BoxClient,
+    hub_id: str,
+    user_id: str,
+    role: str,
+) -> Dict[str, Any]:
+    """Add a collaboration to a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to add the collaboration to.
+        user_id (str): The ID of the user to collaborate with.
+        role (str): The level of access granted to a Box Hub. Possible values are editor, viewer, and co-owner.
+    Returns:
+        Dict[str, Any]: Dictionary containing added collaboration details or error message.
+    """
+    return _create_hub_collaboration(
+        client=client,
+        hub_id=hub_id,
+        accessible_by_type=HubCollaborationAccessibleByType.USER,
+        role=role,
+        accessible_by_id=user_id,
+    )
+
+
+def box_hub_collaboration_add_user_by_email(
+    client: BoxClient,
+    hub_id: str,
+    email: str,
+    role: str,
+) -> Dict[str, Any]:
+    """Add a collaboration to a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to add the collaboration to.
+        email (str): The email of the user to collaborate with.
+        role (str): The level of access granted to a Box Hub. Possible values are editor, viewer, and co-owner.
+    Returns:
+        Dict[str, Any]: Dictionary containing added collaboration details or error message.
+    """
+    return _create_hub_collaboration(
+        client=client,
+        hub_id=hub_id,
+        accessible_by_type=HubCollaborationAccessibleByType.USER,
+        role=role,
+        accessible_by_login=email,
+    )
+
+
+def box_hub_collaboration_add_group_by_id(
+    client: BoxClient,
+    hub_id: str,
+    group_id: str,
+    role: str,
+) -> Dict[str, Any]:
+    """Add a group collaboration to a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_id (str): The ID of the Hub to add the collaboration to.
+        group_id (str): The ID of the group to collaborate with.
+        role (str): The level of access granted to a Box Hub. Possible values are editor, viewer, and co-owner.
+    Returns:
+        Dict[str, Any]: Dictionary containing added collaboration details or error message.
+    """
+    return _create_hub_collaboration(
+        client=client,
+        hub_id=hub_id,
+        accessible_by_type=HubCollaborationAccessibleByType.GROUP,
+        role=role,
+        accessible_by_id=group_id,
+    )
+
+
+def box_hub_collaboration_remove(
+    client: BoxClient,
+    hub_collaboration_id: str,
+) -> Dict[str, Any]:
+    """Remove a collaboration from a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_collaboration_id (str): The ID of the collaboration to remove.
+    Returns:
+        Dict[str, Any]: Dictionary containing removed collaboration details or error message.
+    """
+    try:
+        client.hub_collaborations.delete_hub_collaboration_by_id_v2025_r0(
+            hub_collaboration_id=hub_collaboration_id,
+        )
+        return {
+            "message": f"Hub collaboration with ID {hub_collaboration_id} deleted successfully."
+        }
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_collaboration_update(
+    client: BoxClient,
+    hub_collaboration_id: str,
+    role: str,
+) -> Dict[str, Any]:
+    """Update a collaboration in a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_collaboration_id (str): The ID of the collaboration to update.
+        role (str): The new level of access granted to a Box Hub. Possible values are editor, viewer, and co-owner.
+    Returns:
+        Dict[str, Any]: Dictionary containing updated collaboration details or error message.
+    """
+    try:
+        collaboration = (
+            client.hub_collaborations.update_hub_collaboration_by_id_v2025_r0(
+                hub_collaboration_id=hub_collaboration_id,
+                role=role,
+            )
+        )
+        return collaboration.to_dict()
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_hub_collaboration_details(
+    client: BoxClient,
+    hub_collaboration_id: str,
+) -> Dict[str, Any]:
+    """Get details of a collaboration in a Hub.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        hub_collaboration_id (str): The ID of the collaboration to retrieve.
+    Returns:
+        Dict[str, Any]: Dictionary containing collaboration details or error message.
+    """
+    try:
+        collaboration = client.hub_collaborations.get_hub_collaboration_by_id_v2025_r0(
+            hub_collaboration_id=hub_collaboration_id,
+        )
+        return collaboration.to_dict()
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}
