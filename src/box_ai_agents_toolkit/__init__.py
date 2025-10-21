@@ -79,26 +79,25 @@ from .box_api_groups import (
     box_groups_search,
 )
 from .box_api_hubs import (
-    box_hub_copy,
-    box_hub_create,
-    box_hub_delete,
-    box_hub_get,
-    box_hub_list,
-    box_hub_update,
-    # hub items
-    box_hub_items_list,
-    box_hub_item_add,
-    box_hub_item_remove,
     # hub collaborations
     box_hub_collaboration_add_group_by_id,
     box_hub_collaboration_add_user_by_email,
     box_hub_collaboration_add_user_by_id,
+    box_hub_collaboration_details,
     box_hub_collaboration_remove,
     box_hub_collaboration_update,
     box_hub_collaborations_list,
-    box_hub_collaboration_details,
+    box_hub_copy,
+    box_hub_create,
+    box_hub_delete,
+    box_hub_get,
+    box_hub_item_add,
+    box_hub_item_remove,
+    # hub items
+    box_hub_items_list,
+    box_hub_list,
+    box_hub_update,
 )
-
 from .box_api_metadata_template import (
     box_metadata_delete_instance_on_file,
     box_metadata_get_instance_on_file,
@@ -136,7 +135,6 @@ from .box_api_weblink import (
     box_web_link_get_by_id,
     box_web_link_update_by_id,
 )
-
 
 __all__ = [
     "BoxClient",

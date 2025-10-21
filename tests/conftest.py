@@ -11,9 +11,9 @@ from box_sdk_gen import (
     File,
     FileReferenceV2025R0,
     Folder,
+    HubV2025R0,
     UploadFileAttributes,
     UploadFileAttributesParentField,
-    HubV2025R0,
 )
 from dotenv import load_dotenv
 
