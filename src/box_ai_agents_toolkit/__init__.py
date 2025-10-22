@@ -104,12 +104,18 @@ from .box_api_shared_links import (
     box_shared_link_web_link_remove,
 )
 from .box_api_tasks import (
+    box_task_assign_by_email,
+    box_task_assign_by_user_id,
+    box_task_assignment_details,
+    box_task_assignment_remove,
+    box_task_assignment_update,
+    box_task_assignments_list,
     box_task_complete_create,
     box_task_details,
+    box_task_file_list,
     box_task_remove,
     box_task_review_create,
     box_task_update,
-    box_tasks_file_list,
 )
 from .box_api_users import (
     box_users_list,
@@ -210,10 +216,16 @@ __all__ = [
     "box_shared_link_web_link_get",
     "box_shared_link_web_link_remove",
     "box_shared_link_web_link_find_by_shared_link_url",
-    "box_tasks_file_list",
+    "box_task_file_list",
     "box_task_details",
     "box_task_review_create",
     "box_task_complete_create",
     "box_task_remove",
     "box_task_update",
+    "box_task_assignments_list",
+    "box_task_assignment_details",
+    "box_task_assignment_update",
+    "box_task_assign_by_user_id",
+    "box_task_assign_by_email",
+    "box_task_assignment_remove",
 ]

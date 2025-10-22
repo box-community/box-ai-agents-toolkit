@@ -7,9 +7,13 @@ from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
     CreateTaskAction,
+    CreateTaskAssignmentAssignTo,
+    CreateTaskAssignmentTask,
+    CreateTaskAssignmentTaskTypeField,
     CreateTaskCompletionRule,
     CreateTaskItem,
     CreateTaskItemTypeField,
+    UpdateTaskAssignmentByIdResolutionState,
     UpdateTaskByIdCompletionRule,
 )
 
@@ -84,7 +88,7 @@ def _task_create(
         return {"error": e.message}
 
 
-def box_tasks_file_list(
+def box_task_file_list(
     client: BoxClient,
     file_id: str,
 ) -> Dict[str, Any]:
@@ -146,7 +150,7 @@ def box_task_review_create(
         Dict[str, Any]: Dictionary containing created task details or error message.
     """
 
-    action = CreateTaskAction.COMPLETE
+    action = CreateTaskAction.REVIEW
 
     return _task_create(
         client=client,
@@ -178,7 +182,7 @@ def box_task_complete_create(
         Dict[str, Any]: Dictionary containing created task details or error message.
     """
 
-    action = CreateTaskAction.REVIEW
+    action = CreateTaskAction.COMPLETE
 
     return _task_create(
         client=client,
@@ -249,6 +253,235 @@ def box_task_update(
             completion_rule=completion_rule,
         )
         return {"task": task.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assignments_list(
+    client: BoxClient,
+    task_id: str,
+) -> Dict[str, Any]:
+    """
+    List all assignments associated with a specific task in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_id (str): ID of the task to list assignments for.
+    Returns:
+        Dict[str, Any]: Dictionary containing list of assignments or error or empty message.
+    """
+    try:
+        assignments = client.task_assignments.get_task_assignments(task_id=task_id)
+        if assignments.entries is None or len(assignments.entries) == 0:
+            return {"message": "No assignments found for the specified task."}
+        return {
+            "assignments": [assignment.to_dict() for assignment in assignments.entries]
+        }
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assignment_details(
+    client: BoxClient,
+    task_assignment_id: str,
+) -> Dict[str, Any]:
+    """
+    Retrieve details of a specific task assignment in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_assignment_id (str): ID of the task assignment to retrieve details for.
+    Returns:
+        Dict[str, Any]: Dictionary containing task assignment details or error message.
+    """
+    try:
+        assignment = client.task_assignments.get_task_assignment_by_id(
+            task_assignment_id=task_assignment_id
+        )
+        return {"assignment": assignment.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assign_by_user_id(
+    client: BoxClient,
+    task_id: str,
+    user_id: str,
+) -> Dict[str, Any]:
+    """
+    Assign a task to a user by their user ID in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_id (str): ID of the task to assign.
+        user_id (str): ID of the user to assign the task to.
+    Returns:
+        Dict[str, Any]: Dictionary containing created task assignment details or error message.
+    """
+
+    task = CreateTaskAssignmentTask(
+        id=task_id, type=CreateTaskAssignmentTaskTypeField.TASK
+    )
+    assign_to = CreateTaskAssignmentAssignTo(id=user_id)
+    try:
+        assignment = client.task_assignments.create_task_assignment(
+            task=task,
+            assign_to=assign_to,
+        )
+        return {"assignment": assignment.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assign_by_email(
+    client: BoxClient,
+    task_id: str,
+    email: str,
+) -> Dict[str, Any]:
+    """
+    Assign a task to a user by their email in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_id (str): ID of the task to assign.
+        email (str): Email of the user to assign the task to.
+    Returns:
+        Dict[str, Any]: Dictionary containing created task assignment details or error message.
+    """
+
+    task = CreateTaskAssignmentTask(
+        id=task_id, type=CreateTaskAssignmentTaskTypeField.TASK
+    )
+    assign_to = CreateTaskAssignmentAssignTo(login=email)
+    try:
+        assignment = client.task_assignments.create_task_assignment(
+            task=task,
+            assign_to=assign_to,
+        )
+        return {"assignment": assignment.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assignment_remove(
+    client: BoxClient,
+    task_assignment_id: str,
+) -> Dict[str, Any]:
+    """
+    Remove a specific task assignment in Box.
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_assignment_id (str): ID of the task assignment to remove.
+    Returns:
+        Dict[str, Any]: Dictionary indicating success or containing error message.
+    """
+    try:
+        client.task_assignments.delete_task_assignment_by_id(
+            task_assignment_id=task_assignment_id
+        )
+        return {"message": "Task assignment removed successfully."}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_task_assignment_update(
+    client: BoxClient,
+    task_assignment_id: str,
+    is_positive_outcome: bool,
+    message: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Updates a task assignment to mark it as complete or review outcome.
+
+    Args:
+        client (BoxClient): Authenticated Box client.
+        task_assignment_id (str): ID of the task assignment to update.
+        message (Optional[str]): Message or description for the task assignment update. None means no change
+        is_positive_outcome (Optional[bool]):
+            For review tasks: True for approved, False for rejected.
+            For complete tasks: True for completed, False for incomplete.
+            None means no change.
+    Returns:
+        Dict[str, Any]: Dictionary containing updated task assignment details or error message.
+    """
+
+    try:
+        # get the task assignment details
+        task_assignment = client.task_assignments.get_task_assignment_by_id(
+            task_assignment_id=task_assignment_id
+        )
+
+        if not task_assignment or not task_assignment.item:
+            return {"error": "Task assignment not found."}
+
+        # get the file id from the task assignment
+        file_id = task_assignment.item.id
+
+        # list all tasks for the file
+        file_tasks = client.tasks.get_file_tasks(file_id=file_id).entries
+        if not file_tasks:
+            return {"error": "No tasks found for the associated file."}
+
+        task_action = None
+
+        for task in file_tasks:
+            if (
+                not task.task_assignment_collection
+                or not task.task_assignment_collection.entries
+                or len(task.task_assignment_collection.entries) == 0
+            ):
+                continue
+
+            for task_assignment in task.task_assignment_collection.entries:
+                if task_assignment.id == task_assignment_id:
+                    task_action = task.action
+                    break
+        if task_action is None:
+            return {"error": "Unable to identify type of task (Complete/Review)."}
+
+        resolution_state = None
+
+        match task_action:
+            case CreateTaskAction.COMPLETE:
+                # review task
+                match is_positive_outcome:
+                    case False:
+                        resolution_state = (
+                            UpdateTaskAssignmentByIdResolutionState.INCOMPLETE
+                        )
+                    case True:
+                        resolution_state = (
+                            UpdateTaskAssignmentByIdResolutionState.COMPLETED
+                        )
+
+            case CreateTaskAction.REVIEW:
+                match is_positive_outcome:
+                    case False:
+                        resolution_state = (
+                            UpdateTaskAssignmentByIdResolutionState.REJECTED
+                        )
+                    case True:
+                        resolution_state = (
+                            UpdateTaskAssignmentByIdResolutionState.APPROVED
+                        )
+
+        if (
+            task_action == CreateTaskAction.COMPLETE
+            and resolution_state == UpdateTaskAssignmentByIdResolutionState.INCOMPLETE
+        ):
+            # For complete tasks, Box API does not allow marking as incomplete via update.
+            return {
+                "message": "Any update to this task must change its state must be a positive outcome (complete)."
+            }
+
+        task_assignment = client.task_assignments.update_task_assignment_by_id(
+            task_assignment_id=task_assignment_id,
+            message=message,
+            resolution_state=resolution_state,
+        )
+        return {"task assignment": task_assignment.to_dict()}
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}
