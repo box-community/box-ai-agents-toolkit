@@ -1,15 +1,16 @@
 import uuid
+
 from box_sdk_gen import (
     BoxClient,
-    CreateGroupMembershipUser,
     CreateGroupMembershipGroup,
     CreateGroupMembershipRole,
+    CreateGroupMembershipUser,
 )
 
 from box_ai_agents_toolkit import (
-    box_groups_search,
     box_groups_list_by_user,
     box_groups_list_members,
+    box_groups_search,
 )
 
 

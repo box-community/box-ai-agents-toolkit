@@ -1,15 +1,16 @@
-from typing import Any, Dict, Optional
 from datetime import datetime as DateTime
+from typing import Any, Dict, Optional
+
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
-    CreateCollaborationItem,
-    CreateCollaborationItemTypeField,
     CreateCollaborationAccessibleBy,
     CreateCollaborationAccessibleByTypeField,
+    CreateCollaborationItem,
+    CreateCollaborationItemTypeField,
     CreateCollaborationRole,
-    UpdateCollaborationByIdStatus,
     UpdateCollaborationByIdRole,
+    UpdateCollaborationByIdStatus,
 )
 
 from .box_api_util_generic import log_box_api_error, log_generic_error
