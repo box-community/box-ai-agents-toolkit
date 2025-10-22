@@ -1,4 +1,5 @@
 import logging
+
 from box_sdk_gen import (
     BoxAPIError,
     DataSanitizer,
