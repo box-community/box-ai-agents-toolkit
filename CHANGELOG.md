@@ -1,10 +1,16 @@
 # Changelog
-## 0.0.54 - 2025-09-30
+
 ## 0.1.1 - 2025-10-22
 
 * Fixing missing testing data (#10) (e7b412a)
 * bumping version (0b8f550)
 
+* Implementing Tasks tools (#9)
+* Implementing Tasks
+* Implementing Task Assignments
+
+
+## 0.0.54 - 2025-09-30
 * Merge pull request #8 from box-community/rb/shared-links (18a5d0c)
 * Shared Link tool implementation for Web Links (a220474)
 * WebLink tool implementation (36ad8fa)
