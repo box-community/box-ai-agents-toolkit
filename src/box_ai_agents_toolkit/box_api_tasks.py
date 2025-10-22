@@ -445,7 +445,7 @@ def box_task_assignment_update(
 
         match task_action:
             case CreateTaskAction.COMPLETE:
-                # review task
+                # complete task
                 match is_positive_outcome:
                     case False:
                         resolution_state = (
