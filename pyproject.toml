@@ -1,6 +1,6 @@
 [project]
 name = "box-ai-agents-toolkit"
-version = "0.0.54"
+version = "0.1.0"
 description = "A python library for building AI agents for Box"
 license = "MIT"
 readme = "README.md"
