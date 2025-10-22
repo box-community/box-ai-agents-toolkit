@@ -473,7 +473,7 @@ def box_task_assignment_update(
         ):
             # For complete tasks, Box API does not allow marking as incomplete via update.
             return {
-                "message": "Any update to this task must change its state must be a positive outcome (complete)."
+                "message": "Any update to this task's state must be a positive outcome (complete)."
             }
 
         task_assignment = client.task_assignments.update_task_assignment_by_id(
