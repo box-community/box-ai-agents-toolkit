@@ -52,7 +52,7 @@ def _task_create(
     Helper function to create a task in Box.
     Args:
         client (BoxClient): Authenticated Box client.
-        item (CreateTaskItem): The item to create the task for.
+        file_id (str): ID of the file to create the task for.
         action (CreateTaskAction): The action for the task.
         due_at (Optional[DateTime]): Due date for the task.
         message (Optional[str]): Message or description for the task.
