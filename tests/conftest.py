@@ -308,7 +308,7 @@ def tasks_test_data(box_client_ccg: BoxClient):
 @pytest.fixture(scope="module")
 def ai_test_data(box_client_ccg: BoxClient):
     # create temporary folder
-    folder_name = f"{uuid.uuid4()} Tasks Pytest"
+    folder_name = f"{uuid.uuid4()} AI Pytest"
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
@@ -432,7 +432,7 @@ def ai_test_data(box_client_ccg: BoxClient):
 @pytest.fixture(scope="module")
 def metadata_test_data(box_client_ccg: BoxClient):
     # create temporary folder
-    folder_name = f"{uuid.uuid4()} Tasks Pytest"
+    folder_name = f"{uuid.uuid4()} Metadata Pytest"
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
