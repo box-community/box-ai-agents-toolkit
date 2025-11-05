@@ -13,6 +13,10 @@ from box_sdk_gen import (
     Folder,
     UploadFileAttributes,
     UploadFileAttributesParentField,
+    CreateMetadataTemplateFields,
+    AiStudioAgentAsk,
+    AiStudioAgentTextGen,
+    AiStudioAgentExtract,
 )
 from dotenv import load_dotenv
 
@@ -36,6 +40,9 @@ def box_client_ccg() -> BoxClient:
 class TestData:
     test_folder: Folder
     test_files: Optional[list[File]] = None
+    test_hub_id: Optional[str] = None
+    test_template_key: Optional[str] = None
+    test_ai_agent_id: Optional[str] = None
 
 
 @pytest.fixture(scope="module")
@@ -291,6 +298,130 @@ def tasks_test_data(box_client_ccg: BoxClient):
 
     # yield the data for the test
     yield test_data
+
+    # clean up temporary folder
+    box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def ai_test_data(box_client_ccg: BoxClient):
+    # create temporary folder
+    folder_name = f"{uuid.uuid4()} Tasks Pytest"
+    parent = CreateFolderParent(id="0")  # root folder
+    folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
+
+    test_data = TestData(
+        test_folder=folder,
+    )
+
+    # upload test files
+    test_data_path = Path(__file__).parent.joinpath("test_data").joinpath("AI")
+
+    if not test_data_path.exists():
+        current_path = Path(__file__).parent
+        raise FileNotFoundError(
+            f"Test data path {test_data_path} does not exist in {current_path}."
+        )
+
+    for file_path in test_data_path.glob("*.*"):
+        with file_path.open("rb") as f:
+            file_name = file_path.name
+            file_attributes = UploadFileAttributes(
+                name=file_name,
+                parent=UploadFileAttributesParentField(id=folder.id),
+            )
+            uploaded_file = box_client_ccg.uploads.upload_file(
+                attributes=file_attributes,
+                file_file_name=f"{file_name}_{datetime.now().isoformat()}",
+                file=f,
+            )
+            if not test_data.test_files:
+                test_data.test_files = []
+            if uploaded_file.entries:
+                test_data.test_files.append(uploaded_file.entries[0])
+
+    # create temporary hub
+    hub_name = f"{uuid.uuid4()} Pytest"
+    hub = box_client_ccg.hubs.create_hub_v2025_r0(hub_name, description="Pytest Hub")
+
+    test_data.test_hub_id = hub.id
+
+    # create a test ai agent
+    ai_agent_name = f"{uuid.uuid4()} Pytest AI Agent"
+
+    ask_agent = AiStudioAgentAsk(
+        access_state="enabled",
+        description="ASK AI Agent for Pytest",
+    )
+    text_gen_agent = AiStudioAgentTextGen(
+        access_state="enabled",
+        description="Text Generation AI Agent for Pytest",
+    )
+    extract_agent = AiStudioAgentExtract(
+        access_state="enabled",
+        description="Text Extraction AI Agent for Pytest",
+    )
+
+    ai_agent = box_client_ccg.ai_studio.create_ai_agent(
+        name=ai_agent_name,
+        access_state="enabled",
+        ask=ask_agent,
+        text_gen=text_gen_agent,
+        extract=extract_agent,
+    )
+    test_data.test_ai_agent_id = ai_agent.id
+
+    # create test metadata template
+
+    # assert metadata.get("name") is not None
+    # assert metadata.get("number") is not None
+    # assert metadata.get("effectiveDate") is not None
+    # assert metadata.get("paymentTerms") is not None
+
+    template_name = f"{uuid.uuid4()}"
+    template = box_client_ccg.metadata_templates.create_metadata_template(
+        scope="enterprise",
+        display_name=template_name,
+        template_key=f"A{template_name}",
+        fields=[
+            CreateMetadataTemplateFields(
+                type="string",
+                key="name",
+                display_name="Name",
+            ),
+            CreateMetadataTemplateFields(
+                type="string",
+                key="number",
+                display_name="Number",
+            ),
+            CreateMetadataTemplateFields(
+                type="date",
+                key="effectiveDate",
+                display_name="Effective Date",
+            ),
+            CreateMetadataTemplateFields(
+                type="string",
+                key="paymentTerms",
+                display_name="Payment Terms",
+            ),
+        ],
+    )
+
+    test_data.test_template_key = template.template_key
+
+    # yield the data for the test
+    yield test_data
+
+    # delete test ai agent
+    box_client_ccg.ai_studio.delete_ai_agent_by_id(test_data.test_ai_agent_id)
+
+    # delete metadata template
+    box_client_ccg.metadata_templates.delete_metadata_template(
+        scope="enterprise", template_key=template.template_key
+    )
+
+    # clean up temporary hub
+    box_client_ccg.hubs.delete_hub_by_id_v2025_r0(hub.id)
 
     # clean up temporary folder
     box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
