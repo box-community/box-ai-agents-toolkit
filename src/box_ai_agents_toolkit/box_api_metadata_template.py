@@ -10,6 +10,8 @@ from box_sdk_gen import (
     BoxClient,
     CreateFileMetadataByIdScope,
     CreateMetadataTemplateFields,
+    CreateMetadataTemplateFieldsOptionsField,
+    CreateMetadataTemplateFieldsTypeField,
     DeleteFileMetadataByIdScope,
     DeleteMetadataTemplateScope,
     GetFileMetadataByIdScope,
@@ -29,20 +31,18 @@ def _box_metadata_template_create(
 ) -> MetadataTemplate:
     """
     Create a new metadata template definition in Box.
-
     Args:
         client (BoxClient): An authenticated Box client.
         display_name (str): Human-readable name for the template.
+        template_key (str, optional): Key to identify the template.
         fields (List[CreateMetadataTemplateFields], optional): List of field definitions.
-        copy_instance_on_item_copy (bool, optional): Whether to copy instances on item copy.
-
     Returns:
         MetadataTemplate: The created metadata template definition.
     """
     return client.metadata_templates.create_metadata_template(
         scope="enterprise",  # Default scope
         display_name=display_name,
-        fields=fields or [],
+        fields=fields,
         copy_instance_on_item_copy=copy_instance_on_item_copy or False,
         template_key=template_key,
     )
@@ -54,7 +54,7 @@ def box_metadata_template_create(
     fields: List[Dict[str, Any]],
     *,
     template_key: Optional[str] = None,
-) -> dict:
+) -> Dict[str, Any]:
     """
     Create a new metadata template definition in Box.
 
@@ -78,6 +78,12 @@ def box_metadata_template_create(
                     "displayName": "Last Contacted At",
                     "description": "When this customer was last contacted at",
                     "hidden": false
+                    },
+                    {
+                    "key": "totalAmount",
+                    "type": "float",
+                    "description": "Final amount paid",
+                    "displayName": "Total Amount"
                     },
                     {
                     "type": "enum",
@@ -105,20 +111,29 @@ def box_metadata_template_create(
                 }
 
     Returns:
-        MetadataTemplate: The created metadata template definition.
+        Dict[str, Any]: The created metadata template definition or error message.
     """
     metadata_template_fields: List[CreateMetadataTemplateFields] = []
+
     for field in fields:
+        options: List[CreateMetadataTemplateFieldsOptionsField] = []
+        if "options" in field:
+            for option in field["options"]:
+                options.append(
+                    CreateMetadataTemplateFieldsOptionsField(
+                        key=option["key"],
+                    )
+                )
+        type = CreateMetadataTemplateFieldsTypeField(field["type"])
+
         metadata_template_fields.append(
             CreateMetadataTemplateFields(
-                key=field["key"],
-                name=field["name"],
-                type=field["type"],
-                display_name=field.get("display_name", field["name"]),
+                type=type,
+                key=field.get("key"),
+                display_name=field.get("displayName"),
+                description=field.get("description", None),
                 hidden=field.get("hidden", False),
-                required=field.get("required", False),
-                default_value=field.get("default_value"),
-                options=field.get("options"),
+                options=options if options else None,
             )
         )
     try:
@@ -128,30 +143,53 @@ def box_metadata_template_create(
             fields=metadata_template_fields,
             template_key=template_key,
         )
-        return response.to_dict()
+        return {"metadata_template": response.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 
 
 def box_metadata_template_list(
     client: BoxClient,
-    marker: Optional[str] = None,
-    limit: Optional[int] = None,
-) -> MetadataTemplates:
+    limit: Optional[int] = 1000,
+) -> Dict[str, Any]:
     """
     List metadata template definitions for a given scope.
 
     Args:
         client (BoxClient): An authenticated Box client.
-        marker (str, optional): Pagination marker.
         limit (int, optional): Max items per page.
 
     Returns:
-        MetadataTemplates: A page of metadata template entries.
+        Dict[str, Any]: List of metadata template definitions or error message.
     """
-    return client.metadata_templates.get_enterprise_metadata_templates(
-        marker=marker, limit=limit
-    )
+
+    marker = None
+
+    try:
+        templates = client.metadata_templates.get_enterprise_metadata_templates(
+            limit=limit
+        )
+        if templates.entries is None:
+            return {"message": "No templates found"}
+        else:
+            result = [template.to_dict() for template in templates.entries]
+
+        if templates.next_marker:
+            marker = templates.next_marker
+            while marker:
+                templates = client.metadata_templates.get_enterprise_metadata_templates(
+                    limit=limit, marker=marker
+                )
+                if templates.entries:
+                    result.extend(
+                        [template.to_dict() for template in templates.entries]
+                    )
+                marker = templates.next_marker
+
+    except BoxAPIError as e:
+        return {"error": e.message}
+
+    return {"metadata_templates": result}
 
 
 # def _box_metadata_template_update(
@@ -206,14 +244,15 @@ def _box_metadata_template_list_by_instance_id(
 def box_metadata_template_get_by_key(
     client: BoxClient,
     template_key: str,
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Retrieve a metadata template definition by scope and key.
     """
     try:
-        return client.metadata_templates.get_metadata_template(
+        response = client.metadata_templates.get_metadata_template(
             scope=GetMetadataTemplateScope.ENTERPRISE, template_key=template_key
-        ).to_dict()
+        )
+        return {"metadata_template": response.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 
@@ -226,9 +265,8 @@ def box_metadata_template_get_by_id(
     Retrieve a metadata template definition by its unique ID.
     """
     try:
-        return client.metadata_templates.get_metadata_template_by_id(
-            template_id
-        ).to_dict()
+        response = client.metadata_templates.get_metadata_template_by_id(template_id)
+        return {"metadata_template": response.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 
@@ -236,7 +274,7 @@ def box_metadata_template_get_by_id(
 def box_metadata_template_get_by_name(
     client: BoxClient,
     display_name: str,
-) -> Dict:
+) -> Dict[str, Any]:
     """
     Find a metadata template by its display name within a given scope.
 
@@ -245,15 +283,15 @@ def box_metadata_template_get_by_name(
         display_name (str): The display name of the template to search for.
 
     Returns:
-        Optional[MetadataTemplate]: The found metadata template or None if not found.
+        Dict[str, Any]: The metadata template definition or a not found message.
     """
-    templates = box_metadata_template_list(client)
-    entries = getattr(templates, "entries", None)
-    if entries is None:
+    templates = box_metadata_template_list(client).get("metadata_templates", None)
+    if templates is None:
         return {"message": "No templates found"}
-    for template in entries:
-        if template.display_name.lower() == display_name.lower():
-            return template.to_dict()
+
+    for template in templates:
+        if template["displayName"].lower() == display_name.lower():
+            return {"metadata_template": template}
     return {"message": "Template not found"}
 
 
@@ -284,7 +322,7 @@ def box_metadata_set_instance_on_file(
             template_key=template_key,
             request_body=metadata,
         )
-        return resp.to_dict()
+        return {"metadata_instance": resp.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 
@@ -311,7 +349,7 @@ def box_metadata_get_instance_on_file(
             scope=GetFileMetadataByIdScope.ENTERPRISE,
             template_key=template_key,
         )
-        return resp.to_dict()
+        return {"metadata_instance": resp.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 
@@ -342,15 +380,16 @@ def box_metadata_update_instance_on_file(
     )
     if "error" in existing_metadata:
         return existing_metadata
-    existing_metadata = existing_metadata.get("extra_data", {})
+    existing_metadata = existing_metadata.get("metadata_instance", {})
+    existing_extra_data = existing_metadata.get("extra_data", {})
     # Compare each field and update only if necessary
     # each field in metadata should be a key-value pair
     # with an additional property 'operation' to indicate the operation
     # supported operations are 'replace', 'add', 'remove'
     request_body = []
     for key, value in metadata.items():
-        if key in existing_metadata:
-            if value != existing_metadata[key]:
+        if key in existing_extra_data:
+            if value != existing_extra_data[key]:
                 request_body.append(
                     {"op": "replace", "path": f"/{key}", "value": value}
                 )
@@ -359,7 +398,7 @@ def box_metadata_update_instance_on_file(
 
     # If there are fields to remove, add them to the request body
     if remove_non_included_data:
-        for key in existing_metadata:
+        for key in existing_extra_data:
             if key not in metadata:
                 request_body.append({"op": "remove", "path": f"/{key}"})
 
@@ -373,7 +412,7 @@ def box_metadata_update_instance_on_file(
             template_key=template_key,
             request_body=request_body,
         )
-        return resp.to_dict()
+        return {"metadata_instance": resp.to_dict()}
     except BoxAPIError as e:
         return {"error": e.message}
 

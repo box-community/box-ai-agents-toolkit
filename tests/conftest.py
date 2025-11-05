@@ -7,16 +7,17 @@ from typing import Optional
 
 import pytest
 from box_sdk_gen import (
+    AiStudioAgentAsk,
+    AiStudioAgentExtract,
+    AiStudioAgentTextGen,
     CreateFolderParent,
+    CreateMetadataTemplateFields,
     File,
     FileReferenceV2025R0,
     Folder,
+    MetadataTemplate,
     UploadFileAttributes,
     UploadFileAttributesParentField,
-    CreateMetadataTemplateFields,
-    AiStudioAgentAsk,
-    AiStudioAgentTextGen,
-    AiStudioAgentExtract,
 )
 from dotenv import load_dotenv
 
@@ -42,6 +43,7 @@ class TestData:
     test_files: Optional[list[File]] = None
     test_hub_id: Optional[str] = None
     test_template_key: Optional[str] = None
+    test_metadata_template: Optional[MetadataTemplate] = None
     test_ai_agent_id: Optional[str] = None
 
 
@@ -422,6 +424,113 @@ def ai_test_data(box_client_ccg: BoxClient):
 
     # clean up temporary hub
     box_client_ccg.hubs.delete_hub_by_id_v2025_r0(hub.id)
+
+    # clean up temporary folder
+    box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def metadata_test_data(box_client_ccg: BoxClient):
+    # create temporary folder
+    folder_name = f"{uuid.uuid4()} Tasks Pytest"
+    parent = CreateFolderParent(id="0")  # root folder
+    folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
+
+    test_data = TestData(
+        test_folder=folder,
+    )
+
+    # upload test files
+    test_data_path = Path(__file__).parent.joinpath("test_data").joinpath("AI")
+
+    if not test_data_path.exists():
+        current_path = Path(__file__).parent
+        raise FileNotFoundError(
+            f"Test data path {test_data_path} does not exist in {current_path}."
+        )
+
+    for file_path in test_data_path.glob("*.*"):
+        with file_path.open("rb") as f:
+            file_name = file_path.name
+            file_attributes = UploadFileAttributes(
+                name=file_name,
+                parent=UploadFileAttributesParentField(id=folder.id),
+            )
+            uploaded_file = box_client_ccg.uploads.upload_file(
+                attributes=file_attributes,
+                file_file_name=f"{file_name}_{datetime.now().isoformat()}",
+                file=f,
+            )
+            if not test_data.test_files:
+                test_data.test_files = []
+            if uploaded_file.entries:
+                test_data.test_files.append(uploaded_file.entries[0])
+
+    # create test metadata template
+
+    template_name = f"{uuid.uuid4()}"
+    fields = []
+
+    field_text = {
+        "type": "string",
+        "displayName": "Test Field",
+        "key": "test_field",
+    }
+    fields.append(field_text)
+
+    field_date = {
+        "type": "date",
+        "displayName": "Date Field",
+        "key": "date_field",
+    }
+    fields.append(field_date)
+
+    field_float = {
+        "type": "float",
+        "displayName": "Float Field",
+        "key": "float_field",
+    }
+    fields.append(field_float)
+
+    field_enum = {
+        "type": "enum",
+        "displayName": "Enum Field",
+        "key": "enum_field",
+        "options": [
+            {"key": "option1"},
+            {"key": "option2"},
+        ],
+    }
+    fields.append(field_enum)
+
+    field_multiselect = {
+        "type": "multiSelect",
+        "displayName": "Multiselect Field",
+        "key": "multiselect_field",
+        "options": [
+            {"key": "option1"},
+            {"key": "option2"},
+        ],
+    }
+    fields.append(field_multiselect)
+
+    template = box_client_ccg.metadata_templates.create_metadata_template(
+        scope="enterprise",
+        display_name=template_name,
+        template_key=f"A{template_name}",
+        fields=fields,
+    )
+
+    test_data.test_template_key = template.template_key
+    test_data.test_metadata_template = template
+
+    # yield the data for the test
+    yield test_data
+
+    # delete metadata template
+    box_client_ccg.metadata_templates.delete_metadata_template(
+        scope="enterprise", template_key=template.template_key
+    )
 
     # clean up temporary folder
     box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
