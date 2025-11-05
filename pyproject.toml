@@ -1,16 +1,13 @@
 [project]
 name = "box-ai-agents-toolkit"
-version = "0.1.1"
+version = "0.1.2"
 description = "A python library for building AI agents for Box"
 license = "MIT"
 readme = "README.md"
 keywords = [ "box", "box.com", "ai", "agent", "toolkit", "library", "box ai", "box api", "box ai api",]
 classifiers = [ "Development Status :: 4 - Beta", "Programming Language :: Python",]
 requires-python = ">=3.11"
-dependencies = [
- "box-sdk-gen>=1.17.0",
- "python-dotenv>=1.0.1",
-]
+dependencies = [ "box-sdk-gen>=1.17.0", "python-dotenv>=1.0.1",]
 [[project.authors]]
 name = "Box Developer Relations"
 email = "devrel@box.com"

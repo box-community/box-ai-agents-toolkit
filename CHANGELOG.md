@@ -1,5 +1,9 @@
 # Changelog
+## 0.1.2 - 2025-11-05
 
+* 20251105 refactor (#11) (e5dbfc5)
+* Fixing change log (d1f910f)
+* Update version to 0.1.1 and changelog (838f5d9)
 ## 0.1.1 - 2025-10-22
 
 * Fixing missing testing data (#10) (e7b412a)
