@@ -25,7 +25,7 @@ from box_ai_agents_toolkit.box_api_file import (
 from box_ai_agents_toolkit.box_api_folder import (
     box_create_folder,
     box_delete_folder,
-    box_folder_list_content,
+    box_folder_items_list,
     box_update_folder,
 )
 from box_ai_agents_toolkit.box_api_search import (
@@ -150,7 +150,7 @@ __all__ = [
     "box_upload_file",
     "box_create_folder",
     "box_delete_folder",
-    "box_folder_list_content",
+    "box_folder_items_list",
     "box_update_folder",
     "box_locate_folder_by_name",
     "box_search",
