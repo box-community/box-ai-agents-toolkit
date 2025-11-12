@@ -1,17 +1,14 @@
-from dataclasses import fields
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional
 
 from box_sdk_gen import (
-    BoxClient,
     BoxAPIError,
-    CreateFolderParent,
-    File,
-    Folder,
-    FolderMini,
-    UpdateFolderByIdParent,
-    UpdateFolderByIdCollections,
-    Collections,
+    BoxClient,
     Collection,
+    CreateFolderParent,
+    Folder,
+    FolderFull,
+    UpdateFolderByIdCollections,
+    UpdateFolderByIdFolderUploadEmail,
 )
 
 from .box_api_util_generic import log_box_api_error
@@ -255,14 +252,16 @@ def box_folder_set_collaboration(
     folder_id: str,
     can_non_owners_invite: bool,
     can_non_owners_view_collaborators: bool,
+    is_collaboration_restricted_to_enterprise: bool,
 ) -> dict[str, Any]:
     """
     Sets collaboration settings for a folder in Box.
     Args:
         client (BoxClient): An authenticated Box client
         folder_id (str): ID of the folder to set collaboration settings for.
-        can_non_owners_invite (bool): Whether non-owners can invite collaborators.
-        can_non_owners_view_collaborators (bool): Whether non-owners can view collaborators.
+        can_non_owners_invite (bool): Specifies if users who are not the owner of the folder can invite new collaborators to the folder.
+        can_non_owners_view_collaborators (bool): Restricts collaborators who are not the owner of this folder from viewing other collaborations on this folder.
+        is_collaboration_restricted_to_enterprise (bool): Specifies if new invites to this folder are restricted to users within the enterprise. This does not affect existing collaborations.
     Returns:
         dict[str, Any]: Dictionary containing the updated folder object or error message
     """
@@ -271,6 +270,12 @@ def box_folder_set_collaboration(
             folder_id=folder_id,
             can_non_owners_invite=can_non_owners_invite,
             can_non_owners_view_collaborators=can_non_owners_view_collaborators,
+            is_collaboration_restricted_to_enterprise=is_collaboration_restricted_to_enterprise,
+            fields=[
+                "can_non_owners_invite",
+                "can_non_owners_view_collaborators",
+                "is_collaboration_restricted_to_enterprise",
+            ],
         )
         return {"folder": updated_folder.to_dict()}
     except BoxAPIError as e:
@@ -291,8 +296,8 @@ def box_folder_favorites_add(client: BoxClient, folder_id: str) -> dict[str, Any
     """
     try:
         # list all collections to find the "Favorites" collection
-        collections = client.collections.get_collections().entries
-        favorites_collection = next(
+        collections: List[Collection] = client.collections.get_collections().entries
+        favorites_collection: Collection = next(
             (c for c in collections if c.name == "Favorites"), None
         )
         if not favorites_collection:
@@ -304,6 +309,7 @@ def box_folder_favorites_add(client: BoxClient, folder_id: str) -> dict[str, Any
         updated_folder = client.folders.update_folder_by_id(
             folder_id=folder_id,
             collections=[folder_favorite_collection],
+            fields=["collections"],
         )
         return {"folder": updated_folder.to_dict()}
     except BoxAPIError as e:
@@ -332,18 +338,19 @@ def box_folder_favorites_remove(client: BoxClient, folder_id: str) -> dict[str, 
 
         # get folder details with collections
         fields = ["id", "type", "name", "collections"]
-        folder = client.folders.get_folder_by_id(folder_id, fields=fields)
+        folder: FolderFull = client.folders.get_folder_by_id(folder_id, fields=fields)
 
-        folder_collections = folder.collections or []
+        folder_collections: List[Collection] = folder.collections or []
 
-        # remove favorites collection from folder collections if exists
-        folder_collections = [
-            c for c in folder_collections if c.id != favorites_collection.id
-        ]
+        for col in folder_collections:
+            if col.get("id") == favorites_collection.id:
+                folder_collections.remove(col)
+                break
 
         updated_folder = client.folders.update_folder_by_id(
             folder_id=folder_id,
             collections=folder_collections,
+            fields=["collections"],
         )
         return {"folder": updated_folder.to_dict()}
     except BoxAPIError as e:
@@ -351,10 +358,131 @@ def box_folder_favorites_remove(client: BoxClient, folder_id: str) -> dict[str, 
         return {"error": e.message}
 
 
-def box_folder_set_updload_email(
+def box_folder_set_sync(
     client: BoxClient,
     folder_id: str,
-    upload_email_access: Optional[str] = "collaborators",
+    sync_state: str,
+) -> dict[str, Any]:
+    """
+    Sets the sync state for a folder in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client
+        folder_id (str): ID of the folder to set sync state for.
+        sync_state (str): Specifies whether a folder should be synced to a user's device or not. This is used by Box Sync (discontinued) and is not used by Box Drive. Value is one of synced,not_synced,partially_synced
+
+    Returns:
+        dict[str, Any]: Dictionary containing the updated folder object or error message
+    """
+    try:
+        updated_folder: Folder = client.folders.update_folder_by_id(
+            folder_id=folder_id,
+            sync_state=sync_state,
+            fields=["sync_state"],
+        )
+        return {"folder": updated_folder.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_folder_tag_add(
+    client: BoxClient,
+    folder_id: str,
+    tag: str,
+) -> dict[str, Any]:
+    """
+    Adds a tag to a folder in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client
+        folder_id (str): ID of the folder to add tag to.
+        tag (str): Tag to add to the folder.
+
+    Returns:
+        dict[str, Any]: Dictionary containing the updated folder object or error message
+    """
+
+    try:
+        # get folder existing tags
+        folder = client.folders.get_folder_by_id(folder_id, fields=["tags"])
+        existing_tags = folder.tags or []
+
+        # combine existing tags with new tags
+        all_tags = list(set(existing_tags + [tag]))
+        updated_folder: Folder = client.folders.update_folder_by_id(
+            folder_id=folder_id,
+            tags=all_tags,
+            fields=["tags"],
+        )
+        return {"folder": updated_folder.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_folder_tag_remove(
+    client: BoxClient,
+    folder_id: str,
+    tag: str,
+) -> dict[str, Any]:
+    """
+    Removes a tag from a folder in Box.
+    Args:
+        client (BoxClient): An authenticated Box client
+        folder_id (str): ID of the folder to remove tag from.
+        tag (str): Tag to remove from the folder.
+    Returns:
+        dict[str, Any]: Dictionary containing the updated folder object or error message
+    """
+
+    try:
+        # get folder existing tags
+        folder = client.folders.get_folder_by_id(folder_id, fields=["tags"])
+        existing_tags = folder.tags or []
+
+        # remove the specified tag
+        updated_tags = [t for t in existing_tags if t != tag]
+        updated_folder: Folder = client.folders.update_folder_by_id(
+            folder_id=folder_id,
+            tags=updated_tags,
+            fields=["tags"],
+        )
+        return {"folder": updated_folder.to_dict()}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_folder_list_tags(
+    client: BoxClient,
+    folder_id: str,
+) -> dict[str, Any]:
+    """
+    Lists tags associated with a folder in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client
+        folder_id (str): ID of the folder to list tags for.
+
+    Returns:
+        dict[str, Any]: Dictionary containing the list of tags or error message
+    """
+    try:
+        folder = client.folders.get_folder_by_id(folder_id, fields=["tags"])
+        tags = folder.tags or []
+        if not tags:
+            return {"message": "No tags found for the folder."}
+        return {"tags": tags}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_folder_set_upload_email(
+    client: BoxClient,
+    folder_id: str,
+    folder_upload_email_access: Optional[str] = "collaborators",
 ) -> dict[str, Any]:
     """
     Sets or removes the upload email address for a folder in Box.
@@ -363,55 +491,22 @@ def box_folder_set_updload_email(
         client (BoxClient): An authenticated Box client
         folder_id (str): ID of the folder to set the upload email for.
         upload_email_access (Optional[str]): The upload email access level to set. If None, removes the upload email.
+                                            When set to open it will accept emails from any email address.
+                                            Value is one of open,collaborators
 
     Returns:
         dict[str, Any]: Dictionary containing the updated folder object or error message
     """
     try:
-        updated_folder = client.folders.update_folder_by_id(
+        folder_upload_email = UpdateFolderByIdFolderUploadEmail(
+            access=folder_upload_email_access
+        )
+        updated_folder: FolderFull = client.folders.update_folder_by_id(
             folder_id=folder_id,
-            upload_email=upload_email,
+            folder_upload_email=folder_upload_email,
+            fields=["folder_upload_email"],
         )
         return {"folder": updated_folder.to_dict()}
     except BoxAPIError as e:
         log_box_api_error(e)
         return {"error": e.message}
-
-
-def box_update_folder(
-    client: BoxClient,
-    folder_id: Any,
-    name: Optional[str] = None,
-    description: Optional[str] = None,
-    parent_folder_id: Optional[Any] = None,
-) -> Folder:
-    """
-    Updates a folder's properties in Box.
-
-    Args:
-        client (BoxClient): An authenticated Box client
-        folder_id (Any): ID of the folder to update. Can be string or int.
-        name (str, optional): New name for the folder
-        description (str, optional): New description for the folder
-        parent_folder_id (Any, optional): ID of the new parent folder (for moving). Can be string or int.
-
-    Returns:
-        FolderFull: The updated folder object
-
-    Raises:
-        BoxSDKError: If an error occurs during folder update
-    """
-    # Ensure folder_id is a string
-    folder_id_str = str(folder_id)
-
-    update_params = {}
-    if name:
-        update_params["name"] = name
-    if description:
-        update_params["description"] = description
-    if parent_folder_id is not None:
-        # Ensure parent_folder_id is a string
-        parent_folder_id_str = str(parent_folder_id)
-        update_params["parent"] = UpdateFolderByIdParent(id=parent_folder_id_str)
-
-    return client.folders.update_folder_by_id(folder_id=folder_id_str, **update_params)

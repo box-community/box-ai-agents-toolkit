@@ -534,3 +534,42 @@ def metadata_test_data(box_client_ccg: BoxClient):
 
     # clean up temporary folder
     box_client_ccg.folders.delete_folder_by_id(folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def folder_test_data(box_client_ccg: BoxClient):
+    """
+    Fixture to create test folder structure for folder API tests.
+    Creates a parent folder with subfolders and handles cleanup.
+    """
+    # create temporary parent folder
+    folder_name = f"{uuid.uuid4()} Folder Pytest"
+    parent = CreateFolderParent(id="0")  # root folder
+    parent_folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
+
+    # create a subfolder for testing recursive operations
+    subfolder_name = f"Subfolder {uuid.uuid4()}"
+    subfolder_parent = CreateFolderParent(id=parent_folder.id)
+    subfolder = box_client_ccg.folders.create_folder(subfolder_name, parent=subfolder_parent)
+
+    # create a deeply nested subfolder for recursive listing
+    nested_name = f"Nested {uuid.uuid4()}"
+    nested_parent = CreateFolderParent(id=subfolder.id)
+    nested_folder = box_client_ccg.folders.create_folder(nested_name, parent=nested_parent)
+
+    # create destination folder for move/copy tests
+    dest_folder_name = f"Destination {uuid.uuid4()}"
+    dest_parent = CreateFolderParent(id="0")
+    destination_folder = box_client_ccg.folders.create_folder(dest_folder_name, parent=dest_parent)
+
+    test_data = TestData(
+        test_folder=parent_folder,
+        test_files=[subfolder, nested_folder, destination_folder],
+    )
+
+    # yield the data for the test
+    yield test_data
+
+    # clean up all temporary folders recursively
+    box_client_ccg.folders.delete_folder_by_id(parent_folder.id, recursive=True)
+    box_client_ccg.folders.delete_folder_by_id(destination_folder.id, recursive=True)
