@@ -341,10 +341,16 @@ def box_folder_favorites_remove(client: BoxClient, folder_id: str) -> dict[str, 
 
         folder_collections: List[Collection] = folder.collections or []
 
-        for col in folder_collections:
-            if col.get("id") == favorites_collection.id:
-                folder_collections.remove(col)
-                break
+        folder_collections = [
+            col
+            for col in folder_collections
+            if col.get("id") != favorites_collection.id
+        ]
+
+        # for col in folder_collections:
+        #     if col.get("id") == favorites_collection.id:
+        #         folder_collections.remove(col)
+        #         break
 
         updated_folder = client.folders.update_folder_by_id(
             folder_id=folder_id,
@@ -489,7 +495,7 @@ def box_folder_set_upload_email(
     Args:
         client (BoxClient): An authenticated Box client
         folder_id (str): ID of the folder to set the upload email for.
-        upload_email_access (Optional[str]): The upload email access level to set. If None, removes the upload email.
+        folder_upload_email_access (Optional[str]): The upload email access level to set. If None, removes the upload email.
                                             When set to open it will accept emails from any email address.
                                             Value is one of open,collaborators
 
