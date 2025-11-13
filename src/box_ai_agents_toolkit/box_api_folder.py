@@ -124,11 +124,10 @@ def box_folder_delete(
 
     Args:
         client (BoxClient): An authenticated Box client
-        folder_id (Any): ID of the folder to delete. Can be string or int.
+        folder_id (str): ID of the folder to delete. Can be string or int.
         recursive (bool, optional): Whether to delete recursively. Defaults to False.
-
-    Raises:
-        BoxSDKError: If an error occurs during folder deletion
+    Returns:
+        dict[str, Any]: Dictionary containing success message or error message
     """
     try:
         client.folders.delete_folder_by_id(folder_id=folder_id, recursive=recursive)

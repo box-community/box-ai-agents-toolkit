@@ -97,7 +97,9 @@ def test_box_folder_items_list_with_limit(
 def test_box_folder_items_list_not_found(box_client_ccg: BoxClient):
     """Test error handling when listing items from non-existent folder."""
     non_existent_id = "999999999999"
-    response = box_folder_items_list(box_client_ccg, non_existent_id, is_recursive=False)
+    response = box_folder_items_list(
+        box_client_ccg, non_existent_id, is_recursive=False
+    )
 
     assert response is not None
     assert "error" in response
@@ -150,7 +152,7 @@ def test_box_folder_create_duplicate_name(
     assert "error" not in response1
     folder_id_1 = response1["folder"]["id"]
 
-    # Create second folder with same name - Box does not allows this
+    # Create second folder with same name - Box does not allow this
     response2 = box_folder_create(box_client_ccg, folder_name, parent_folder_id)
     assert "error" in response2
 
@@ -265,7 +267,9 @@ def test_box_folder_copy_default_name(
     box_client_ccg.folders.delete_folder_by_id(copied_folder["id"], recursive=True)
 
 
-def test_box_folder_copy_source_not_found(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_copy_source_not_found(
+    box_client_ccg: BoxClient, folder_test_data: TestData
+):
     """Test error handling when copying a non-existent source folder."""
     non_existent_id = "999999999999"
     destination_parent_id = folder_test_data.test_files[2].id
@@ -281,7 +285,9 @@ def test_box_folder_copy_source_not_found(box_client_ccg: BoxClient, folder_test
     assert "error" in response
 
 
-def test_box_folder_copy_destination_not_found(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_copy_destination_not_found(
+    box_client_ccg: BoxClient, folder_test_data: TestData
+):
     """Test error handling when copying to a non-existent destination folder."""
     source_folder_id = folder_test_data.test_files[0].id
     non_existent_dest = "999999999999"
@@ -323,7 +329,9 @@ def test_box_folder_move_success(box_client_ccg: BoxClient, folder_test_data: Te
     box_client_ccg.folders.delete_folder_by_id(folder_to_move_id, recursive=False)
 
 
-def test_box_folder_move_folder_not_found(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_move_folder_not_found(
+    box_client_ccg: BoxClient, folder_test_data: TestData
+):
     """Test error handling when moving a non-existent folder."""
     non_existent_id = "999999999999"
     destination_parent_id = folder_test_data.test_files[2].id
@@ -334,7 +342,9 @@ def test_box_folder_move_folder_not_found(box_client_ccg: BoxClient, folder_test
     assert "error" in response
 
 
-def test_box_folder_move_destination_not_found(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_move_destination_not_found(
+    box_client_ccg: BoxClient, folder_test_data: TestData
+):
     """Test error handling when moving to a non-existent destination."""
     source_parent_id = folder_test_data.test_folder.id
     folder_to_move_name = f"Move Me {uuid.uuid4()}"
