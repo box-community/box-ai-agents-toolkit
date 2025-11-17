@@ -21,7 +21,7 @@ from box_ai_agents_toolkit import (
     box_collaborations_list_by_folder,
 )
 
-from .conftest import TestData
+from .conftest import SampleData
 
 
 def _prep_test_group(box_client_ccg: BoxClient) -> GroupFull:
@@ -70,7 +70,7 @@ def _prep_test_group(box_client_ccg: BoxClient) -> GroupFull:
 
 @pytest.mark.order(index=10)
 def test_box_collaborations_list_by_file_no_collaborations(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -108,7 +108,7 @@ def test_box_collaborations_list_by_file_no_collaborations(
 
 @pytest.mark.order(index=20)
 def test_box_collaborations_list_by_folder_no_collaborations(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert collaborations_test_files.test_folder is not None
@@ -146,7 +146,7 @@ def test_box_collaborations_list_by_folder_no_collaborations(
 
 @pytest.mark.order(index=30)
 def test_box_collaboration_file_user_by_user_id(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -203,7 +203,7 @@ def test_box_collaboration_file_user_by_user_id(
 
 @pytest.mark.order(index=40)
 def test_box_collaboration_file_user_by_user_login(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -263,7 +263,7 @@ def test_box_collaboration_file_user_by_user_login(
 
 @pytest.mark.order(index=50)
 def test_box_collaborations_list_by_file_many_collaborations(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -352,7 +352,7 @@ def test_box_collaborations_list_by_file_many_collaborations(
 
 @pytest.mark.order(index=60)
 def test_box_collaborations_list_by_folder_many_collaborations(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert collaborations_test_files.test_folder is not None
@@ -442,7 +442,7 @@ def test_box_collaborations_list_by_folder_many_collaborations(
 
 @pytest.mark.order(index=70)
 def test_box_collaboration_folder_user_by_user_id(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert collaborations_test_files.test_folder is not None
@@ -523,7 +523,7 @@ def test_box_collaboration_folder_user_by_user_id(
 
 @pytest.mark.order(index=80)
 def test_box_collaboration_folder_user_by_user_login(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert collaborations_test_files.test_folder is not None
@@ -605,7 +605,7 @@ def test_box_collaboration_folder_user_by_user_login(
 
 @pytest.mark.order(index=90)
 def test_box_collaboration_file_group_by_group_id(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -661,7 +661,7 @@ def test_box_collaboration_file_group_by_group_id(
 
 @pytest.mark.order(index=100)
 def test_box_collaboration_folder_group_by_group_id(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert collaborations_test_files.test_folder is not None
@@ -737,7 +737,7 @@ def test_box_collaboration_folder_group_by_group_id(
 
 @pytest.mark.order(index=110)
 def test_box_collaboration_delete(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -819,7 +819,7 @@ def test_box_collaboration_delete(
 
 @pytest.mark.order(index=120)
 def test_box_collaboration_update(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert collaborations_test_files.test_files is not None
@@ -914,7 +914,7 @@ def test_box_collaboration_update(
 
 @pytest.mark.order(index=130)
 def test_box_collaboration_invalid_file_all_file_methods(
-    box_client_ccg: BoxClient, collaborations_test_files: TestData
+    box_client_ccg: BoxClient, collaborations_test_files: SampleData
 ):
     invalid_file_id = "1234567890"  # assuming this file ID does not exist
 

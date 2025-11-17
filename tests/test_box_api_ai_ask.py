@@ -12,10 +12,10 @@ from box_ai_agents_toolkit import (
     box_ai_extract_structured_using_fields,
     box_ai_extract_structured_using_template,
 )
-from tests.conftest import TestData
+from tests.conftest import SampleData
 
 
-def test_box_ai_ask_file(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_ask_file(box_client_ccg: BoxClient, ai_test_data: SampleData):
     """Test the box_ai_ask_file function."""
     response = box_ai_ask_file_single(
         client=box_client_ccg,
@@ -46,7 +46,7 @@ def test_box_ai_ask_file(box_client_ccg: BoxClient, ai_test_data: TestData):
     assert "error" in response
 
 
-def test_box_ai_ask_file_multi(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_ask_file_multi(box_client_ccg: BoxClient, ai_test_data: SampleData):
     """Test the box_ai_ask_file_multi function."""
     response = box_ai_ask_file_multi(
         client=box_client_ccg,
@@ -77,7 +77,7 @@ def test_box_ai_ask_file_multi(box_client_ccg: BoxClient, ai_test_data: TestData
     assert "error" in response
 
 
-def test_box_ai_ask_hub(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_ask_hub(box_client_ccg: BoxClient, ai_test_data: SampleData):
     """Test the box_ai_ask_hub function."""
     response = box_ai_ask_hub(
         client=box_client_ccg,
@@ -99,7 +99,7 @@ def test_box_ai_ask_hub(box_client_ccg: BoxClient, ai_test_data: TestData):
     assert "error" in response
 
 
-def test_box_ai_extract_freeform(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_extract_freeform(box_client_ccg: BoxClient, ai_test_data: SampleData):
     """Test the box_ai_extract_freeform function."""
     prompt = "name, policy number, address, claim number, date reported"
     response = box_ai_extract_freeform(
@@ -142,7 +142,7 @@ def test_box_ai_extract_freeform(box_client_ccg: BoxClient, ai_test_data: TestDa
         assert field in response["AI_response"]["answer"]
 
 
-def test_box_ai_extract_structured(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_extract_structured(box_client_ccg: BoxClient, ai_test_data: SampleData):
     """Test the box_ai_extract_structured function."""
     fields = [
         {
@@ -214,7 +214,7 @@ def test_box_ai_extract_structured(box_client_ccg: BoxClient, ai_test_data: Test
 
 
 def test_box_ai_extract_structured_using_template(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test the box_ai_extract_structured_using_template function."""
     response = box_ai_extract_structured_using_template(
@@ -237,7 +237,7 @@ def test_box_ai_extract_structured_using_template(
 
 
 def test_box_ai_extract_structured_enhanced_using_fields(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test the box_ai_extract_structured_enhanced_using_fields function."""
     fields = [
@@ -277,7 +277,7 @@ def test_box_ai_extract_structured_enhanced_using_fields(
 
 
 def test_box_ai_extract_structured_enhanced_using_template(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test the box_ai_extract_structured_enhanced_using_template function."""
     response = box_ai_extract_structured_enhanced_using_template(
@@ -309,7 +309,7 @@ def test_box_ai_extract_structured_enhanced_using_template(
 
 
 def test_box_ai_ask_file_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_ask_file_single with custom ai_agent_id."""
     response = box_ai_ask_file_single(
@@ -323,7 +323,7 @@ def test_box_ai_ask_file_with_custom_agent(
 
 
 def test_box_ai_ask_file_multi_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_ask_file_multi with custom ai_agent_id."""
     response = box_ai_ask_file_multi(
@@ -337,7 +337,7 @@ def test_box_ai_ask_file_multi_with_custom_agent(
 
 
 def test_box_ai_ask_hub_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_ask_hub with custom ai_agent_id."""
     response = box_ai_ask_hub(
@@ -350,7 +350,9 @@ def test_box_ai_ask_hub_with_custom_agent(
     assert "AI_response" in response or "error" in response
 
 
-def test_box_ai_ask_hub_empty_prompt(box_client_ccg: BoxClient, ai_test_data: TestData):
+def test_box_ai_ask_hub_empty_prompt(
+    box_client_ccg: BoxClient, ai_test_data: SampleData
+):
     """Test box_ai_ask_hub with empty prompt."""
     response = box_ai_ask_hub(
         client=box_client_ccg,
@@ -362,7 +364,7 @@ def test_box_ai_ask_hub_empty_prompt(box_client_ccg: BoxClient, ai_test_data: Te
 
 
 def test_box_ai_extract_freeform_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_freeform with custom ai_agent_id."""
     response = box_ai_extract_freeform(
@@ -376,7 +378,7 @@ def test_box_ai_extract_freeform_with_custom_agent(
 
 
 def test_box_ai_extract_freeform_exactly_20_files(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_freeform with exactly 20 files (boundary test)."""
     file_ids = [ai_test_data.test_files[0].id] * 20
@@ -392,7 +394,7 @@ def test_box_ai_extract_freeform_exactly_20_files(
 
 
 def test_box_ai_extract_freeform_empty_prompt(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_freeform with empty prompt."""
     response = box_ai_extract_freeform(
@@ -406,7 +408,7 @@ def test_box_ai_extract_freeform_empty_prompt(
 
 
 def test_box_ai_extract_structured_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_fields with custom ai_agent_id."""
     fields = [
@@ -428,7 +430,7 @@ def test_box_ai_extract_structured_with_custom_agent(
 
 
 def test_box_ai_extract_structured_empty_files(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_fields with empty file list."""
     fields = [
@@ -450,7 +452,7 @@ def test_box_ai_extract_structured_empty_files(
 
 
 def test_box_ai_extract_structured_too_many_files(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_fields with >20 files."""
     fields = [
@@ -473,7 +475,7 @@ def test_box_ai_extract_structured_too_many_files(
 
 
 def test_box_ai_extract_structured_missing_field_key(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_fields with missing field key."""
     fields = [
@@ -495,7 +497,7 @@ def test_box_ai_extract_structured_missing_field_key(
 
 
 def test_box_ai_extract_structured_fields_without_options(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_fields with fields that have no options."""
     fields = [
@@ -516,7 +518,7 @@ def test_box_ai_extract_structured_fields_without_options(
 
 
 def test_box_ai_extract_structured_using_template_with_custom_agent(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_template with custom ai_agent_id."""
     response = box_ai_extract_structured_using_template(
@@ -530,7 +532,7 @@ def test_box_ai_extract_structured_using_template_with_custom_agent(
 
 
 def test_box_ai_extract_structured_using_template_empty_files(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_template with empty file list."""
     response = box_ai_extract_structured_using_template(
@@ -544,7 +546,7 @@ def test_box_ai_extract_structured_using_template_empty_files(
 
 
 def test_box_ai_extract_structured_using_template_too_many_files(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_template with >20 files."""
     file_ids = [ai_test_data.test_files[0].id] * 21
@@ -559,7 +561,7 @@ def test_box_ai_extract_structured_using_template_too_many_files(
 
 
 def test_box_ai_extract_structured_invalid_template(
-    box_client_ccg: BoxClient, ai_test_data: TestData
+    box_client_ccg: BoxClient, ai_test_data: SampleData
 ):
     """Test box_ai_extract_structured_using_template with invalid template key."""
     response = box_ai_extract_structured_using_template(

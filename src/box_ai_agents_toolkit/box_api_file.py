@@ -1,349 +1,567 @@
-import logging
-import mimetypes
-import os
-import tempfile
-import time
-from enum import Enum
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, Dict, Optional
+from xmlrpc.client import DateTime
 
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
-    File,
-    UploadFileAttributes,
-    UploadFileAttributesParentField,
+    GetFileThumbnailUrlExtension,
+    CopyFileParent,
+    UpdateFileByIdParent,
+    FileFull,
+    UpdateFileByIdLock,
+    UpdateFileByIdPermissions,
 )
-from requests import HTTPError
 
-from .box_api_util_http import _do_request
-
-logging.basicConfig(level=logging.INFO)
+from .box_api_util_generic import log_box_api_error
 
 
-def box_file_get_by_id(client: BoxClient, file_id: str) -> File:
-    return client.files.get_file_by_id(file_id=file_id)
-
-
-class RepresentationType(Enum):
-    MARKDOWN = "markdown"
-    EXTRACTED_TEXT = "extracted_text"
-
-
-class FileRepresentationStatus(Enum):
-    NONE = "none"
-    PENDING = "pending"
-    SUCCESS = "success"
-    ERROR = "error"
-    IMPOSSIBLE = "impossible"
-    UNKNOWN = "unknown"
-
-
-class FileRepresentationResult:
-    def __init__(
-        self,
-        status: FileRepresentationStatus,
-        info_url: Optional[str] = None,
-        content_url: Optional[str] = None,
-    ):
-        self.status = status
-        self.info_url = info_url
-        self.content_url = content_url
-
-
-def _file_representation_status_check(
-    client: BoxClient, representation_type: RepresentationType, file_id: str
-) -> FileRepresentationResult:
+def box_file_info(client: BoxClient, file_id: str) -> Dict[str, Any]:
     """
-    Checks the representations of a file and returns their status.
+    Retrieves information about a file in Box.
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to retrieve information for.
+    Returns:
+        Dict[str, Any]: The file information.
+    """
+    try:
+        file = client.files.get_file_by_id(file_id=file_id).to_dict()
+        return {"file_info": file}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_thumbnail_url(
+    client: BoxClient,
+    file_id: str,
+    extension: Optional[str] = "png",
+    min_height: Optional[int] = None,
+    min_width: Optional[int] = None,
+    max_height: Optional[int] = None,
+    max_width: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Retrieves the thumbnail URL of a file from Box.
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to get the thumbnail for.
+        extension (str, optional): The image format for the thumbnail ('png' or 'jpg'). Defaults to 'png'.
+        min_height (int, optional): Minimum height of the thumbnail, min 32, max 320. Defaults to None.
+        min_width (int, optional): Minimum width of the thumbnail, min 32, max 320. Defaults to None.
+        max_height (int, optional): Maximum height of the thumbnail, min 32, max 320. Defaults to None.
+        max_width (int, optional): Maximum width of the thumbnail, min 32, max 320. Defaults to None.
+    Returns:
+        Dict[str, Any]: The thumbnail URL or an error message.
+    """
+    try:
+        ext = (
+            GetFileThumbnailUrlExtension.PNG
+            if extension.lower() == "png"
+            else GetFileThumbnailUrlExtension.JPG
+        )
+        thumbnail_url = client.files.get_file_thumbnail_url(
+            file_id=file_id,
+            extension=ext,
+            min_height=min_height,
+            min_width=min_width,
+            max_height=max_height,
+            max_width=max_width,
+        )
+        if thumbnail_url is None or thumbnail_url == "":
+            return {"message": "Thumbnail not available for this file."}
+        return {"thumbnail_url": thumbnail_url}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_thumbnail_download(
+    client: BoxClient,
+    file_id: str,
+    extension: Optional[str] = "png",
+    min_height: Optional[int] = None,
+    min_width: Optional[int] = None,
+    max_height: Optional[int] = None,
+    max_width: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Downloads the thumbnail image of a file from Box.
 
     Args:
         client (BoxClient): An authenticated Box client.
-        representation_type (RepresentationType): The type of representation to check for.
-        file_id (str): The ID of the file to check representations for.
+        file_id (str): The ID of the file to download the thumbnail for.
+        extension (str, optional): The image format for the thumbnail ('png' or 'jpg'). Defaults to 'png'.
+        min_height (int, optional): Minimum height of the thumbnail, min 32, max 320. Defaults to None.
+        min_width (int, optional): Minimum width of the thumbnail, min 32, max 320. Defaults to None.
+        max_height (int, optional): Maximum height of the thumbnail, min 32, max 320. Defaults to None.
+        max_width (int, optional): Maximum width of the thumbnail, min 32, max 320. Defaults to None.
+
     Returns:
-        FileRepresentationResult: An object containing the status and URLs of the representation.
+        Dict[str, Any]: The thumbnail image content in bytes or an error message.
+    """
+    try:
+        ext = (
+            GetFileThumbnailUrlExtension.PNG
+            if extension.lower() == "png"
+            else GetFileThumbnailUrlExtension.JPG
+        )
+        thumbnail_stream = client.files.get_file_thumbnail_by_id(
+            file_id=file_id,
+            extension=ext,
+            min_height=min_height,
+            min_width=min_width,
+            max_height=max_height,
+            max_width=max_width,
+        )
+        if thumbnail_stream is None:
+            return {"message": "Thumbnail not available for this file."}
+        thumbnail_content = thumbnail_stream.read()
+        return {"thumbnail_content": thumbnail_content}
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_copy(
+    client: BoxClient,
+    file_id: str,
+    destination_folder_id: str,
+    new_name: Optional[str] = None,
+    version_number: Optional[int] = None,
+) -> Dict[str, Any]:
+    """
+    Copies a file to a specified folder in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to copy.
+        destination_folder_id (str): The ID of the destination folder.
+        new_name (str, optional): New name for the copied file. Defaults to None.
+        version_number (int, optional): The version number of the file to copy. Defaults to None.
+
+    Returns:
+        Dict[str, Any]: Information about the copied file including id and name.
 
     """
-    file_representation_status = FileRepresentationStatus.IMPOSSIBLE
-    file_representation = None
+
     try:
-        file = client.files.get_file_by_id(
-            file_id,
-            x_rep_hints=f"[{representation_type.value}]",
-            fields=["name", "representations"],
+        parent = CopyFileParent(id=destination_folder_id)
+        copied_file = client.files.copy_file(
+            file_id=file_id,
+            parent=parent,
+            name=new_name,
+            version=version_number,
         )
-        if file.representations and file.representations.entries:
-            file_representation = file.representations.entries[0]
+        return {"copied_file": copied_file.to_dict()}
 
     except BoxAPIError as e:
-        logging.error(f"Error retrieving file representation {file_id}: {e.message}")
-        raise e
-
-    if file_representation is None:
-        logging.info(
-            f"Representation of type {representation_type.value} is impossible for file {file_id}."
-        )
-        file_representation_status = FileRepresentationStatus.IMPOSSIBLE
-
-    # Convert all status
-    if file_representation and file_representation.status:
-        file_representation_status = FileRepresentationStatus(
-            file_representation.status.state
-        )
-
-    info_url = None
-    content_url = None
-
-    if (
-        file_representation
-        and file_representation.info
-        and file_representation.info.url
-    ):
-        info_url = file_representation.info.url
-
-    if (
-        file_representation
-        and file_representation.content
-        and file_representation.content.url_template
-    ):
-        content_url = file_representation.content.url_template
-
-    return FileRepresentationResult(
-        status=file_representation_status,
-        info_url=info_url,
-        content_url=content_url,
-    )
+        log_box_api_error(e)
+        return {"error": e.message}
 
 
-def _request_file_representation_generation(
-    client: BoxClient, info_url: Optional[str]
-) -> Dict[str, Any]:
-    if info_url is None:
-        return {"error": "No URL provided for representation generation."}
-    # request representation generation
-    _do_request(client, info_url)
-    return {"message": "Representation generation requested."}
-
-
-def _download_file_representation(
-    client: BoxClient, url_template: Optional[str]
-) -> Dict[str, Any]:
-    if url_template is None:
-        return {"error": "No URL provided for representation download."}
-
-    url = url_template.replace("{+asset_path}", "")
-
-    try:
-        response = _do_request(client, url)
-        return {"content": f"{response.decode('utf-8')}"}
-    except HTTPError as e:
-        logging.error(f"Error downloading markdown content: {e.response.reason}")
-        return {"error": e.response.reason}
-
-
-def _process_file_representation(
+def box_file_move(
     client: BoxClient,
-    representation_type: RepresentationType,
     file_id: str,
-    is_recursive=False,
+    destination_folder_id: str,
 ) -> Dict[str, Any]:
-    representation = _file_representation_status_check(
-        client, representation_type, file_id
-    )
-
-    if representation.status == FileRepresentationStatus.NONE:
-        # request generation
-        _request_file_representation_generation(client, representation.info_url)
-        if not is_recursive:
-            time.sleep(5)  # wait a bit before checking again
-            return _process_file_representation(
-                client, representation_type, file_id, is_recursive=True
-            )
-        return {
-            "message": f"{representation_type.value} representation generation requested.",
-            "status": representation.status.value,
-        }
-
-    if representation.status == FileRepresentationStatus.PENDING:
-        if not is_recursive:
-            time.sleep(5)  # wait a bit before checking again
-            return _process_file_representation(
-                client, representation_type, file_id, is_recursive=True
-            )
-        return {
-            "message": f"{representation_type.value} representation is still being generated. Please try again later.",
-            "status": representation.status.value,
-        }
-
-    if representation.status == FileRepresentationStatus.SUCCESS:
-        return _download_file_representation(client, representation.content_url)
-
-    if representation.status == FileRepresentationStatus.ERROR:
-        return {
-            "error": f"Error generating {representation_type.value} representation.",
-            "status": representation.status.value,
-        }
-
-    if representation.status == FileRepresentationStatus.IMPOSSIBLE:
-        logging.info(
-            f"{representation_type.value} representation is impossible for file {file_id}."
-        )
-        return {
-            "error": f"{representation_type.value} representation is impossible for this file.",
-            "status": representation.status.value,
-        }
-
-    return {
-        "error": f"Unknown status for {representation_type.value} representation.",
-        "status": FileRepresentationStatus.UNKNOWN.value,
-    }
-
-
-def box_file_text_extract(client: BoxClient, file_id: str) -> Dict[str, Any]:
     """
-    Extracts text from a file in Box. The result can be markdown or plain text.
-    If a markdown representation is available, it will be preferred.
+    Moves a file to a specified folder in Box.
+
     Args:
         client (BoxClient): An authenticated Box client.
-        file_id (str): The ID of the file to extract text from.
-    Returns:
-        Dict[str, Any]: The extracted text.
-    """
-    # First we check if file representation markdown is available
-    representation = _process_file_representation(
-        client, RepresentationType.MARKDOWN, file_id
-    )
-    if (
-        representation.get("status") != FileRepresentationStatus.IMPOSSIBLE.value
-        and representation.get("status") != FileRepresentationStatus.ERROR.value
-        and representation.get("status") != FileRepresentationStatus.UNKNOWN.value
-    ):
-        return representation
-
-    representation = _process_file_representation(
-        client, RepresentationType.EXTRACTED_TEXT, file_id
-    )
-
-    return representation
-
-
-def box_file_download(
-    client: BoxClient,
-    file_id: Any,
-    save_file: bool = False,
-    save_path: Optional[str] = None,
-) -> Tuple[Optional[str], Optional[bytes], Optional[str]]:
-    """
-    Downloads a file from Box and optionally saves it locally.
-
-    Args:
-        client (BoxClient): An authenticated Box client
-        file_id (Any): The ID of the file to download. Can be string or int.
-        save_file (bool, optional): Whether to save the file locally. Defaults to False.
-        save_path (str, optional): Path where to save the file. Defaults to None.
+        file_id (str): The ID of the file to move.
+        destination_folder_id (str): The ID of the destination folder.
 
     Returns:
-        Tuple containing:
-            - path_saved (str or None): Path where file was saved if save_file=True
-            - file_content (bytes): Raw file content
-            - mime_type (str): Detected MIME type
+        Dict[str, Any]: Information about the moved file including id and name.
 
-    Raises:
-        BoxSDKError: If an error occurs during file download
     """
-    # Ensure file_id is a string
-    file_id_str = str(file_id)
-
-    # Get file info first to check file type
-    file_info = client.files.get_file_by_id(file_id_str)
-    file_name = file_info.name
-
-    # Download the file
-    download_stream = client.downloads.download_file(file_id_str)
-    file_content = download_stream.read()
-
-    # Get file extension and detect mime type
-    # apparently not used
-    # file_extension = file_name.split(".")[-1].lower() if "." in file_name else ""
-    mime_type, _ = mimetypes.guess_type(file_name)
-
-    # Save file locally if requested
-    saved_path = None
-    if save_file:
-        # Determine where to save the file
-        if save_path:
-            # Use provided path
-            full_save_path = save_path
-            if os.path.isdir(save_path):
-                # If it's a directory, append the filename
-                full_save_path = os.path.join(save_path, file_name)
-        else:
-            # Use temp directory with the original filename
-            temp_dir = tempfile.gettempdir()
-            full_save_path = os.path.join(temp_dir, file_name)
-
-        # Save the file
-        with open(full_save_path, "wb") as f:
-            f.write(file_content)
-        saved_path = full_save_path
-
-    return saved_path, file_content, mime_type
-
-
-# File Upload and Download Functions
-
-
-def box_upload_file(
-    client: BoxClient,
-    content: Union[str, bytes],
-    file_name: str,
-    folder_id: Optional[Any] = None,
-) -> Dict[str, Any]:
-    """
-    Uploads content as a file to Box.
-
-    Args:
-        client (BoxClient): An authenticated Box client
-        content (str): The content to upload as a file
-        file_name (str): The name to give the file in Box
-        folder_id (Any, optional): The ID of the folder to upload to. Can be string or int.
-                                  Defaults to "0" (root).
-
-    Returns:
-        Dict containing information about the uploaded file including id and name
-
-    Raises:
-        BoxSDKError: If an error occurs during file upload
-    """
-    # Create a temporary file; choose write mode based on content type
-    is_bytes = isinstance(content, (bytes, bytearray))
-    mode = "wb" if is_bytes else "w"
-    with tempfile.NamedTemporaryFile(mode=mode, delete=False) as temp_file:
-        # Write bytes or text
-        temp_file.write(content)
-        temp_file_path = temp_file.name
 
     try:
-        # Upload the file
-        with open(temp_file_path, "rb") as file:
-            # Use root folder if folder_id is not provided
-            parent_id = "0"
-            if folder_id is not None:
-                parent_id = str(folder_id)
+        parent = UpdateFileByIdParent(id=destination_folder_id)
+        moved_file = client.files.update_file_by_id(
+            file_id=file_id,
+            parent=parent,
+        )
+        return {"moved_file": moved_file.to_dict()}
 
-            uploaded_file = client.uploads.upload_file(
-                UploadFileAttributes(
-                    name=file_name, parent=UploadFileAttributesParentField(id=parent_id)
-                ),
-                file,
-            )
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
 
-            # Return the first entry which contains file info
-            return {
-                "id": uploaded_file.entries[0].id,
-                "name": uploaded_file.entries[0].name,
-                "type": uploaded_file.entries[0].type,
-            }
-    finally:
-        # Clean up the temporary file
-        os.unlink(temp_file_path)
+
+def box_file_delete(
+    client: BoxClient,
+    file_id: str,
+    recursive: bool = False,
+) -> Dict[str, Any]:
+    """
+    Deletes a file from Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to delete.
+        recursive (bool, optional): Whether to delete all versions of the file. Defaults to False.
+
+    Returns:
+        Dict[str, Any]: A message indicating success or an error message.
+
+    """
+
+    try:
+        client.files.delete_file_by_id(
+            file_id=file_id,
+        )
+        return {"message": f"File {file_id} deleted successfully."}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_rename(
+    client: BoxClient,
+    file_id: str,
+    new_name: str,
+) -> Dict[str, Any]:
+    """
+    Renames a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to rename.
+        new_name (str): The new name for the file.
+
+    Returns:
+        Dict[str, Any]: Information about the renamed file including id and name.
+
+    """
+
+    try:
+        renamed_file = client.files.update_file_by_id(
+            file_id=file_id,
+            name=new_name,
+        )
+        return {"renamed_file": renamed_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_set_description(
+    client: BoxClient,
+    file_id: str,
+    description: str,
+) -> Dict[str, Any]:
+    """
+    Sets the description of a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+        description (str): The new description for the file.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and description.
+
+    """
+
+    try:
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            description=description,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_set_retention_date(
+    client: BoxClient,
+    file_id: str,
+    retention_date: DateTime,
+) -> Dict[str, Any]:
+    """
+    Sets the retention date of a file in Box.  This date cannot be shortened once set on a file.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+        retention_date (DateTime): The new retention date for the file.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and retention date.
+
+    """
+
+    try:
+        updated_file: FileFull = client.files.update_file_by_id(
+            file_id=file_id,
+            retention_date=retention_date,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_lock(
+    client: BoxClient,
+    file_id: str,
+    lock_expires_at: Optional[DateTime] = None,
+    is_download_prevented: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """
+    Defines a lock on an item.
+    This prevents the item from being moved, renamed, or otherwise changed by anyone other than the user who created the lock.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to lock.
+        lock_expires_at (DateTime, optional): The date and time when the lock expires. Defaults to None.
+        is_download_prevented (bool, optional): Whether to prevent downloads while the file is
+
+    Returns:
+        Dict[str, Any]: Information about the locked file including id and lock details.
+
+    """
+
+    try:
+        lock = UpdateFileByIdLock(
+            type="lock",
+            is_download_prevented=is_download_prevented,
+            expires_at=lock_expires_at,
+        )
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            lock=lock,
+        )
+        return {"locked_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_unlock(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Removes a lock from an item.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to unlock.
+
+    Returns:
+        Dict[str, Any]: Information about the unlocked file including id and lock details.
+
+    """
+
+    try:
+        lock = None  # Setting lock to None removes the lock
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            lock=lock,
+        )
+        return {"unlocked_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_set_download_open(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Allows anyone with access to the file to download it.
+    This setting overrides the download permissions that are normally part of the role of a collaboration.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and download settings.
+
+    """
+
+    try:
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            permissions=UpdateFileByIdPermissions(can_download="open"),
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_set_download_company(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Sets a file to be downloadable and openable.
+    This setting overrides the download permissions that are normally part of the role of a collaboration.
+    When set to company, this essentially removes the download option for external users with viewer or editor roles.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and download settings.
+
+    """
+
+    try:
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            permissions=UpdateFileByIdPermissions(can_download="company"),
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_set_download_reset(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Resets the download permissions of a file to the default behavior based on collaboration roles.
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and download settings.
+
+    """
+
+    try:
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            permissions=None,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_tag_list(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Lists the tags associated with a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to retrieve tags for.
+
+    Returns:
+        Dict[str, Any]: The list of tags or an error message.
+
+    """
+
+    try:
+        file = client.files.get_file_by_id(
+            file_id=file_id,
+            fields=["tags"],
+        )
+        tags = [tag.tag for tag in file.tags] if file.tags else []
+        return {"tags": tags}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_tag_add(
+    client: BoxClient,
+    file_id: str,
+    tag: str,
+) -> Dict[str, Any]:
+    """
+    Adds a tag to a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to add a tag to.
+        tag (str): The tag to add.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and tags.
+
+    """
+
+    try:
+        existing_tags = client.files.get_file_by_id(
+            file_id=file_id,
+            fields=["tags"],
+        ).tags
+        tags = [t.tag for t in existing_tags] if existing_tags else []
+        if tag not in tags:
+            tags.append(tag)
+
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            tags=tags,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_tag_remove(
+    client: BoxClient,
+    file_id: str,
+    tag: str,
+) -> Dict[str, Any]:
+    """
+    Removes a tag from a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to remove a tag from.
+        tag (str): The tag to remove.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and tags.
+
+    """
+
+    try:
+        existing_tags = client.files.get_file_by_id(
+            file_id=file_id,
+            fields=["tags"],
+        ).tags
+        tags = [t.tag for t in existing_tags] if existing_tags else []
+        if tag in tags:
+            tags.remove(tag)
+
+        updated_file = client.files.update_file_by_id(
+            file_id=file_id,
+            tags=tags,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}

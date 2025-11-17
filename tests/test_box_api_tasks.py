@@ -26,10 +26,10 @@ from box_ai_agents_toolkit import (
 )
 from box_ai_agents_toolkit.box_api_tasks import _current_user_timezone
 
-from .conftest import TestData
+from .conftest import SampleData
 
 
-def test_box_task_review_create(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_review_create(box_client_ccg: BoxClient, tasks_test_data: SampleData):
     """Test creating a review task for a file."""
     # Ensure we have test files
     assert tasks_test_data.test_files is not None
@@ -58,7 +58,7 @@ def test_box_task_review_create(box_client_ccg: BoxClient, tasks_test_data: Test
 
 
 def test_box_task_review_create_all_assignees(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test creating a review task requiring all assignees to complete."""
     assert tasks_test_data.test_files is not None
@@ -80,7 +80,9 @@ def test_box_task_review_create_all_assignees(
     assert result["task"]["completion_rule"] == "all_assignees"
 
 
-def test_box_task_complete_create(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_complete_create(
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
+):
     """Test creating a complete task for a file."""
     assert tasks_test_data.test_files is not None
     assert len(tasks_test_data.test_files) > 0
@@ -108,7 +110,7 @@ def test_box_task_complete_create(box_client_ccg: BoxClient, tasks_test_data: Te
 
 
 def test_box_tasks_file_list_with_tasks(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test listing tasks for a file that has tasks."""
     assert tasks_test_data.test_files is not None
@@ -138,7 +140,7 @@ def test_box_tasks_file_list_with_tasks(
 
 
 def test_box_tasks_file_list_no_tasks(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test listing tasks for a file that has no tasks."""
     assert tasks_test_data.test_files is not None
@@ -182,7 +184,7 @@ def test_box_tasks_file_list_no_tasks(
     assert "error" not in result
 
 
-def test_box_task_details(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_details(box_client_ccg: BoxClient, tasks_test_data: SampleData):
     """Test retrieving details of a specific task."""
     assert tasks_test_data.test_files is not None
     assert len(tasks_test_data.test_files) > 0
@@ -212,7 +214,7 @@ def test_box_task_details(box_client_ccg: BoxClient, tasks_test_data: TestData):
     assert result["task"]["message"] == message
 
 
-def test_box_task_update(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_update(box_client_ccg: BoxClient, tasks_test_data: SampleData):
     """Test updating a task."""
     assert tasks_test_data.test_files is not None
     assert len(tasks_test_data.test_files) > 0
@@ -248,7 +250,7 @@ def test_box_task_update(box_client_ccg: BoxClient, tasks_test_data: TestData):
     assert result["task"]["completion_rule"] == "all_assignees"
 
 
-def test_box_task_remove(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_remove(box_client_ccg: BoxClient, tasks_test_data: SampleData):
     """Test removing a task."""
     assert tasks_test_data.test_files is not None
     assert len(tasks_test_data.test_files) > 0
@@ -398,7 +400,7 @@ def test_current_user_timezone_none(box_client_ccg: BoxClient):
 
 
 def test_task_create_with_timezone(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test creating a task with a naive datetime gets user's timezone applied."""
     assert tasks_test_data.test_files is not None
@@ -430,7 +432,7 @@ def test_task_create_with_timezone(
 
 
 def test_task_create_with_invalid_timezone(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test creating a task when user has invalid timezone falls back to UTC."""
     assert tasks_test_data.test_files is not None
@@ -463,7 +465,7 @@ def test_task_create_with_invalid_timezone(
 
 
 def test_box_task_assignments_list_with_assignments(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test listing assignments for a task that has assignments."""
     assert tasks_test_data.test_files is not None
@@ -508,7 +510,7 @@ def test_box_task_assignments_list_with_assignments(
 
 
 def test_box_task_assignments_list_no_assignments(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test listing assignments for a task that has no assignments."""
     assert tasks_test_data.test_files is not None
@@ -538,7 +540,7 @@ def test_box_task_assignments_list_no_assignments(
 
 
 def test_box_task_assignment_details(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test retrieving details of a specific task assignment."""
     assert tasks_test_data.test_files is not None
@@ -581,7 +583,7 @@ def test_box_task_assignment_details(
 
 
 def test_box_task_assign_by_user_id(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test assigning a task to a user by user ID."""
     assert tasks_test_data.test_files is not None
@@ -615,7 +617,9 @@ def test_box_task_assign_by_user_id(
     assert result["assignment"]["assigned_to"]["type"] == "user"
 
 
-def test_box_task_assign_by_email(box_client_ccg: BoxClient, tasks_test_data: TestData):
+def test_box_task_assign_by_email(
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
+):
     """Test assigning a task to a user by email."""
     assert tasks_test_data.test_files is not None
     assert len(tasks_test_data.test_files) > 0
@@ -651,7 +655,7 @@ def test_box_task_assign_by_email(box_client_ccg: BoxClient, tasks_test_data: Te
 
 
 def test_box_task_assignment_update_review_approved(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test updating a review task assignment to approved state."""
     assert tasks_test_data.test_files is not None
@@ -696,7 +700,7 @@ def test_box_task_assignment_update_review_approved(
 
 
 def test_box_task_assignment_update_review_rejected(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test updating a review task assignment to rejected state."""
     assert tasks_test_data.test_files is not None
@@ -741,7 +745,7 @@ def test_box_task_assignment_update_review_rejected(
 
 
 def test_box_task_assignment_update_complete_completed(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test updating a complete task assignment to completed state."""
     assert tasks_test_data.test_files is not None
@@ -786,7 +790,7 @@ def test_box_task_assignment_update_complete_completed(
 
 
 def test_box_task_assignment_update_complete_incomplete(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test updating a complete task assignment to incomplete state."""
     assert tasks_test_data.test_files is not None
@@ -832,7 +836,7 @@ def test_box_task_assignment_update_complete_incomplete(
 
 
 def test_box_task_assignment_remove(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test removing a task assignment."""
     assert tasks_test_data.test_files is not None
@@ -969,7 +973,7 @@ def test_box_task_assign_by_user_id_invalid_task_id(box_client_ccg: BoxClient):
 
 
 def test_box_task_assign_by_user_id_invalid_user_id(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test assigning a task to a non-existent user."""
     assert tasks_test_data.test_files is not None
@@ -1000,7 +1004,7 @@ def test_box_task_assign_by_user_id_invalid_user_id(
 
 
 def test_box_task_assign_by_email_invalid_email(
-    box_client_ccg: BoxClient, tasks_test_data: TestData
+    box_client_ccg: BoxClient, tasks_test_data: SampleData
 ):
     """Test assigning a task to a non-existent email."""
     assert tasks_test_data.test_files is not None

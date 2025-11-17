@@ -14,7 +14,7 @@ from src.box_ai_agents_toolkit import (
     box_folder_favorites_remove,
     box_folder_info,
     box_folder_items_list,
-    box_folder_list_tags,
+    box_folder_tag_list,
     box_folder_move,
     box_folder_rename,
     box_folder_set_collaboration,
@@ -24,12 +24,14 @@ from src.box_ai_agents_toolkit import (
     box_folder_tag_add,
     box_folder_tag_remove,
 )
-from tests.conftest import BoxClient, TestData
+from tests.conftest import BoxClient, SampleData
 
 # ==================== Folder Info Tests ====================
 
 
-def test_box_folder_info_success(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_info_success(
+    box_client_ccg: BoxClient, folder_test_data: SampleData
+):
     """Test retrieving information about an existing folder."""
     folder_id = folder_test_data.test_folder.id
     response = box_folder_info(box_client_ccg, folder_id)
@@ -56,7 +58,7 @@ def test_box_folder_info_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_items_list_non_recursive(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test listing items in a folder without recursion."""
     parent_id = folder_test_data.test_folder.id
@@ -69,7 +71,7 @@ def test_box_folder_items_list_non_recursive(
 
 
 def test_box_folder_items_list_recursive(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test listing items recursively through nested folders."""
     parent_id = folder_test_data.test_folder.id
@@ -82,7 +84,7 @@ def test_box_folder_items_list_recursive(
 
 
 def test_box_folder_items_list_with_limit(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test listing items with custom limit parameter."""
     parent_id = folder_test_data.test_folder.id
@@ -109,7 +111,7 @@ def test_box_folder_items_list_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_create_success(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test creating a new folder in an existing parent folder."""
     parent_folder_id = folder_test_data.test_folder.id
@@ -141,7 +143,7 @@ def test_box_folder_create_invalid_parent(box_client_ccg: BoxClient):
 
 
 def test_box_folder_create_duplicate_name(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test creating a folder with a name that already exists in parent."""
     parent_folder_id = folder_test_data.test_folder.id
@@ -163,7 +165,9 @@ def test_box_folder_create_duplicate_name(
 # ==================== Folder Delete Tests ====================
 
 
-def test_box_folder_delete_empty(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_delete_empty(
+    box_client_ccg: BoxClient, folder_test_data: SampleData
+):
     """Test deleting an empty folder."""
     parent_folder_id = folder_test_data.test_folder.id
     folder_to_delete_name = f"Delete Me {uuid.uuid4()}"
@@ -184,7 +188,7 @@ def test_box_folder_delete_empty(box_client_ccg: BoxClient, folder_test_data: Te
 
 
 def test_box_folder_delete_recursive(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test deleting a folder with contents using recursive flag."""
     parent_folder_id = folder_test_data.test_folder.id
@@ -217,7 +221,7 @@ def test_box_folder_delete_non_existent(box_client_ccg: BoxClient):
 
 
 def test_box_folder_copy_with_new_name(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test copying a folder with a new name."""
     source_folder_id = folder_test_data.test_files[0].id  # subfolder
@@ -243,7 +247,7 @@ def test_box_folder_copy_with_new_name(
 
 
 def test_box_folder_copy_default_name(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test copying a folder and preserving its original name."""
     source_folder_id = folder_test_data.test_files[0].id  # subfolder
@@ -268,7 +272,7 @@ def test_box_folder_copy_default_name(
 
 
 def test_box_folder_copy_source_not_found(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test error handling when copying a non-existent source folder."""
     non_existent_id = "999999999999"
@@ -286,7 +290,7 @@ def test_box_folder_copy_source_not_found(
 
 
 def test_box_folder_copy_destination_not_found(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test error handling when copying to a non-existent destination folder."""
     source_folder_id = folder_test_data.test_files[0].id
@@ -305,7 +309,9 @@ def test_box_folder_copy_destination_not_found(
 # ==================== Folder Move Tests ====================
 
 
-def test_box_folder_move_success(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_move_success(
+    box_client_ccg: BoxClient, folder_test_data: SampleData
+):
     """Test moving a folder to a different parent."""
     # Create a folder to move
     source_parent_id = folder_test_data.test_folder.id
@@ -330,7 +336,7 @@ def test_box_folder_move_success(box_client_ccg: BoxClient, folder_test_data: Te
 
 
 def test_box_folder_move_folder_not_found(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test error handling when moving a non-existent folder."""
     non_existent_id = "999999999999"
@@ -343,7 +349,7 @@ def test_box_folder_move_folder_not_found(
 
 
 def test_box_folder_move_destination_not_found(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test error handling when moving to a non-existent destination."""
     source_parent_id = folder_test_data.test_folder.id
@@ -367,7 +373,7 @@ def test_box_folder_move_destination_not_found(
 
 
 def test_box_folder_rename_success(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test renaming a folder."""
     # Create a folder to rename
@@ -406,7 +412,7 @@ def test_box_folder_rename_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_set_description(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting a description on a folder."""
     folder_id = folder_test_data.test_folder.id
@@ -422,7 +428,7 @@ def test_box_folder_set_description(
 
 
 def test_box_folder_set_description_empty(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test clearing a folder's description."""
     folder_id = folder_test_data.test_folder.id
@@ -455,7 +461,7 @@ def test_box_folder_set_description_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_set_collaboration_settings(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting collaboration settings on a folder."""
     folder_id = folder_test_data.test_folder.id
@@ -495,7 +501,7 @@ def test_box_folder_set_collaboration_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_tag_add_single(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test adding a single tag to a folder."""
     folder_id = folder_test_data.test_folder.id
@@ -512,7 +518,7 @@ def test_box_folder_tag_add_single(
 
 
 def test_box_folder_tag_add_multiple(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test adding multiple tags to a folder."""
     folder_id = folder_test_data.test_folder.id
@@ -532,7 +538,7 @@ def test_box_folder_tag_add_multiple(
     assert tag2 in folder["tags"]
 
 
-def test_box_folder_tag_remove(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_tag_remove(box_client_ccg: BoxClient, folder_test_data: SampleData):
     """Test removing a tag from a folder."""
     folder_id = folder_test_data.test_folder.id
     tag = f"tag-to-remove-{uuid.uuid4()}"
@@ -573,7 +579,7 @@ def test_box_folder_tag_remove_not_found(box_client_ccg: BoxClient):
     assert "error" in response
 
 
-def test_box_folder_list_tags(box_client_ccg: BoxClient, folder_test_data: TestData):
+def test_box_folder_list_tags(box_client_ccg: BoxClient, folder_test_data: SampleData):
     """Test listing tags on a folder."""
     folder_id = folder_test_data.test_folder.id
     tag = f"list-tag-{uuid.uuid4()}"
@@ -582,7 +588,7 @@ def test_box_folder_list_tags(box_client_ccg: BoxClient, folder_test_data: TestD
     box_folder_tag_add(box_client_ccg, folder_id, tag)
 
     # List tags
-    response = box_folder_list_tags(box_client_ccg, folder_id)
+    response = box_folder_tag_list(box_client_ccg, folder_id)
 
     assert response is not None
     assert "error" not in response
@@ -594,7 +600,7 @@ def test_box_folder_list_tags(box_client_ccg: BoxClient, folder_test_data: TestD
 
 
 def test_box_folder_list_tags_empty(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test listing tags on a folder with no tags."""
     # Create a new folder with no tags
@@ -603,7 +609,7 @@ def test_box_folder_list_tags_empty(
     create_response = box_folder_create(box_client_ccg, folder_name, parent_folder_id)
     folder_id = create_response["folder"]["id"]
 
-    response = box_folder_list_tags(box_client_ccg, folder_id)
+    response = box_folder_tag_list(box_client_ccg, folder_id)
 
     assert response is not None
     assert "error" not in response
@@ -618,7 +624,7 @@ def test_box_folder_list_tags_not_found(box_client_ccg: BoxClient):
     """Test error handling when listing tags on non-existent folder."""
     non_existent_id = "999999999999"
 
-    response = box_folder_list_tags(box_client_ccg, non_existent_id)
+    response = box_folder_tag_list(box_client_ccg, non_existent_id)
 
     assert response is not None
     assert "error" in response
@@ -628,7 +634,7 @@ def test_box_folder_list_tags_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_favorites_add(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test adding a folder to favorites."""
     folder_id = folder_test_data.test_folder.id
@@ -642,7 +648,7 @@ def test_box_folder_favorites_add(
 
 
 def test_box_folder_favorites_add_and_remove(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test adding and then removing a folder from favorites."""
     # Create a new folder for this test
@@ -690,7 +696,7 @@ def test_box_folder_favorites_remove_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_set_sync_state(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting sync state for a folder."""
     folder_id = folder_test_data.test_folder.id
@@ -706,7 +712,7 @@ def test_box_folder_set_sync_state(
 
 
 def test_box_folder_set_sync_state_not_synced(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting sync state to not_synced."""
     folder_id = folder_test_data.test_folder.id
@@ -736,7 +742,7 @@ def test_box_folder_set_sync_not_found(box_client_ccg: BoxClient):
 
 
 def test_box_folder_set_upload_email_collaborators(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting upload email access to collaborators only."""
     folder_id = folder_test_data.test_folder.id
@@ -752,7 +758,7 @@ def test_box_folder_set_upload_email_collaborators(
 
 
 def test_box_folder_set_upload_email_open(
-    box_client_ccg: BoxClient, folder_test_data: TestData
+    box_client_ccg: BoxClient, folder_test_data: SampleData
 ):
     """Test setting upload email access to open."""
     folder_id = folder_test_data.test_folder.id

@@ -21,12 +21,12 @@ from box_ai_agents_toolkit import (
     box_shared_link_web_link_remove,
 )
 
-from .conftest import TestData
+from .conftest import SampleData
 
 
 @pytest.mark.order(index=10)
 def test_box_shared_link_file_get_no_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -62,7 +62,7 @@ def test_box_shared_link_file_get_no_shared_link(
 
 @pytest.mark.order(index=20)
 def test_box_shared_link_file_create(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -115,7 +115,7 @@ def test_box_shared_link_file_create(
 
 @pytest.mark.order(index=40)
 def test_box_shared_link_file_create_with_errors(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -169,7 +169,7 @@ def test_box_shared_link_file_create_with_errors(
 
 @pytest.mark.order(index=50)
 def test_box_shared_link_file_get_existing_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -219,7 +219,7 @@ def test_box_shared_link_file_get_existing_shared_link(
 
 @pytest.mark.order(index=60)
 def test_box_shared_link_file_remove(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -299,7 +299,7 @@ def test_box_shared_link_file_remove(
 
 @pytest.mark.order(index=70)
 def test_box_shared_link_file_find_by_shared_link_url(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -373,7 +373,7 @@ def test_box_shared_link_file_find_by_shared_link_url(
 
 @pytest.mark.order(index=80)
 def test_box_shared_link_file_find_by_shared_link_url_with_password(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test file to work with
     assert shared_link_test_files.test_files is not None
@@ -427,7 +427,7 @@ def test_box_shared_link_file_find_by_shared_link_url_with_password(
 
 @pytest.mark.order(index=110)
 def test_box_shared_link_folder_get_no_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -463,7 +463,7 @@ def test_box_shared_link_folder_get_no_shared_link(
 @pytest.mark.order(index=120)
 def test_box_shared_link_folder_create(
     box_client_ccg: BoxClient,
-    shared_link_test_files: TestData,
+    shared_link_test_files: SampleData,
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -511,7 +511,7 @@ def test_box_shared_link_folder_create(
 
 @pytest.mark.order(index=140)
 def test_box_shared_link_folder_create_with_errors(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -563,7 +563,7 @@ def test_box_shared_link_folder_create_with_errors(
 
 @pytest.mark.order(index=150)
 def test_box_shared_link_folder_get_existing_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -615,7 +615,7 @@ def test_box_shared_link_folder_get_existing_shared_link(
 
 @pytest.mark.order(index=160)
 def test_box_shared_link_folder_remove(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -696,7 +696,7 @@ def test_box_shared_link_folder_remove(
 
 @pytest.mark.order(index=170)
 def test_box_shared_link_folder_find_by_shared_link_url(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -769,7 +769,7 @@ def test_box_shared_link_folder_find_by_shared_link_url(
 
 @pytest.mark.order(index=180)
 def test_box_shared_link_folder_find_by_shared_link_url_with_password(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # Ensure we have a test folder to work with
     assert shared_link_test_files.test_folder is not None
@@ -833,7 +833,7 @@ def _create_test_web_link(
 
 @pytest.mark.order(index=210)
 def test_box_shared_link_web_link_get_no_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -863,7 +863,7 @@ def test_box_shared_link_web_link_get_no_shared_link(
 
 @pytest.mark.order(index=220)
 def test_box_shared_link_web_link_create(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -914,7 +914,7 @@ def test_box_shared_link_web_link_create(
 
 @pytest.mark.order(index=240)
 def test_box_shared_link_web_link_create_with_errors(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -967,7 +967,7 @@ def test_box_shared_link_web_link_create_with_errors(
 
 @pytest.mark.order(index=250)
 def test_box_shared_link_web_link_get_existing_shared_link(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -1015,7 +1015,7 @@ def test_box_shared_link_web_link_get_existing_shared_link(
 
 @pytest.mark.order(index=260)
 def test_box_shared_link_web_link_remove(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -1096,7 +1096,7 @@ def test_box_shared_link_web_link_remove(
 
 @pytest.mark.order(index=270)
 def test_box_shared_link_web_link_find_by_shared_link_url(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(
@@ -1165,7 +1165,7 @@ def test_box_shared_link_web_link_find_by_shared_link_url(
 
 @pytest.mark.order(index=280)
 def test_box_shared_link_web_link_find_by_shared_link_url_with_password(
-    box_client_ccg: BoxClient, shared_link_test_files: TestData
+    box_client_ccg: BoxClient, shared_link_test_files: SampleData
 ):
     # create a test web link
     test_web_link = _create_test_web_link(

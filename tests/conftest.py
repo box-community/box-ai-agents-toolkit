@@ -38,7 +38,7 @@ def box_client_ccg() -> BoxClient:
 
 
 @dataclass
-class TestData:
+class SampleData:
     test_folder: Folder
     test_files: Optional[list[File]] = None
     test_hub_id: Optional[str] = None
@@ -54,7 +54,7 @@ def docgen_test_files(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -92,7 +92,7 @@ def docgen_test_files(box_client_ccg: BoxClient):
 
 
 @pytest.fixture(scope="module")
-def docgen_test_templates(box_client_ccg: BoxClient, docgen_test_files: TestData):
+def docgen_test_templates(box_client_ccg: BoxClient, docgen_test_files: SampleData):
     """
     Fixture to create and return a list of Doc Gen templates for testing.
     """
@@ -118,7 +118,7 @@ def text_extract_test_files(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -161,7 +161,7 @@ def collaborations_test_files(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -206,7 +206,7 @@ def shared_link_test_files(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -251,7 +251,7 @@ def web_link_test_data(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -269,7 +269,7 @@ def tasks_test_data(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -312,7 +312,7 @@ def ai_test_data(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -436,7 +436,7 @@ def metadata_test_data(box_client_ccg: BoxClient):
     parent = CreateFolderParent(id="0")  # root folder
     folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=folder,
     )
 
@@ -550,19 +550,25 @@ def folder_test_data(box_client_ccg: BoxClient):
     # create a subfolder for testing recursive operations
     subfolder_name = f"Subfolder {uuid.uuid4()}"
     subfolder_parent = CreateFolderParent(id=parent_folder.id)
-    subfolder = box_client_ccg.folders.create_folder(subfolder_name, parent=subfolder_parent)
+    subfolder = box_client_ccg.folders.create_folder(
+        subfolder_name, parent=subfolder_parent
+    )
 
     # create a deeply nested subfolder for recursive listing
     nested_name = f"Nested {uuid.uuid4()}"
     nested_parent = CreateFolderParent(id=subfolder.id)
-    nested_folder = box_client_ccg.folders.create_folder(nested_name, parent=nested_parent)
+    nested_folder = box_client_ccg.folders.create_folder(
+        nested_name, parent=nested_parent
+    )
 
     # create destination folder for move/copy tests
     dest_folder_name = f"Destination {uuid.uuid4()}"
     dest_parent = CreateFolderParent(id="0")
-    destination_folder = box_client_ccg.folders.create_folder(dest_folder_name, parent=dest_parent)
+    destination_folder = box_client_ccg.folders.create_folder(
+        dest_folder_name, parent=dest_parent
+    )
 
-    test_data = TestData(
+    test_data = SampleData(
         test_folder=parent_folder,
         test_files=[subfolder, nested_folder, destination_folder],
     )
@@ -573,3 +579,50 @@ def folder_test_data(box_client_ccg: BoxClient):
     # clean up all temporary folders recursively
     box_client_ccg.folders.delete_folder_by_id(parent_folder.id, recursive=True)
     box_client_ccg.folders.delete_folder_by_id(destination_folder.id, recursive=True)
+
+
+@pytest.fixture(scope="module")
+def file_test_data(box_client_ccg: BoxClient):
+    """
+    Fixture to create test data for file API tests.
+    """
+    # create temporary parent folder
+    folder_name = f"{uuid.uuid4()} Files Pytest"
+    parent = CreateFolderParent(id="0")  # root folder
+    parent_folder = box_client_ccg.folders.create_folder(folder_name, parent=parent)
+
+    test_data = SampleData(
+        test_folder=parent_folder,
+    )
+
+    # upload test files
+    test_data_path = Path(__file__).parent.joinpath("test_data").joinpath("Files")
+
+    if not test_data_path.exists():
+        current_path = Path(__file__).parent
+        raise FileNotFoundError(
+            f"Test data path {test_data_path} does not exist in {current_path}."
+        )
+
+    for file_path in test_data_path.glob("*.*"):
+        with file_path.open("rb") as f:
+            file_name = file_path.name
+            file_attributes = UploadFileAttributes(
+                name=file_name,
+                parent=UploadFileAttributesParentField(id=parent_folder.id),
+            )
+            uploaded_file = box_client_ccg.uploads.upload_file(
+                attributes=file_attributes,
+                file_file_name=f"{file_name}_{datetime.now().isoformat()}",
+                file=f,
+            )
+            if not test_data.test_files:
+                test_data.test_files = []
+            if uploaded_file.entries:
+                test_data.test_files.append(uploaded_file.entries[0])
+
+    # yield the data for the test
+    yield test_data
+
+    # clean up temporary folder
+    box_client_ccg.folders.delete_folder_by_id(parent_folder.id, recursive=True)
