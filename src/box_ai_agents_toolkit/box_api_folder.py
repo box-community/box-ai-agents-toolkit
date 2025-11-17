@@ -139,8 +139,8 @@ def box_folder_delete(
 
 def box_folder_copy(
     client: BoxClient,
-    folder_id: Any,
-    destination_parent_folder_id: Any,
+    folder_id: str,
+    destination_parent_folder_id: str,
     name: Optional[str] = None,
 ) -> dict[str, Any]:
     """
@@ -148,8 +148,8 @@ def box_folder_copy(
 
     Args:
         client (BoxClient): An authenticated Box client
-        folder_id (Any): ID of the folder to copy. Can be string or int.
-        destination_parent_folder_id (Any): ID of the destination parent folder. Can be string or int.
+        folder_id (str): ID of the folder to copy.
+        destination_parent_folder_id (str): ID of the destination parent folder.
         name (str, optional): New name for the copied folder. If not provided, original name is used.
     Returns:
         dict[str, Any]: Dictionary containing the copied folder object or error message
@@ -459,7 +459,7 @@ def box_folder_tag_remove(
         return {"error": e.message}
 
 
-def box_folder_list_tags(
+def box_folder_tag_list(
     client: BoxClient,
     folder_id: str,
 ) -> dict[str, Any]:

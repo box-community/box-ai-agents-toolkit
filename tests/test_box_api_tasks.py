@@ -24,7 +24,7 @@ from box_ai_agents_toolkit import (
     box_task_review_create,
     box_task_update,
 )
-from box_ai_agents_toolkit.box_api_tasks import _current_user_timezone
+from box_ai_agents_toolkit.box_api_util_generic import current_user_timezone
 
 from .conftest import SampleData
 
@@ -365,7 +365,7 @@ def test_current_user_timezone_invalid(box_client_ccg: BoxClient):
     mock_user.timezone = "Invalid/Timezone/String"
 
     with patch.object(box_client_ccg.users, "get_user_me", return_value=mock_user):
-        result = _current_user_timezone(box_client_ccg)
+        result = current_user_timezone(box_client_ccg)
 
         # Should fall back to UTC when timezone is invalid
         assert result is not None
@@ -379,7 +379,7 @@ def test_current_user_timezone_valid(box_client_ccg: BoxClient):
     mock_user.timezone = "America/New_York"
 
     with patch.object(box_client_ccg.users, "get_user_me", return_value=mock_user):
-        result = _current_user_timezone(box_client_ccg)
+        result = current_user_timezone(box_client_ccg)
 
         # Should return the ZoneInfo object for America/New_York
         assert result is not None
@@ -393,7 +393,7 @@ def test_current_user_timezone_none(box_client_ccg: BoxClient):
     mock_user.timezone = None
 
     with patch.object(box_client_ccg.users, "get_user_me", return_value=mock_user):
-        result = _current_user_timezone(box_client_ccg)
+        result = current_user_timezone(box_client_ccg)
 
         # Should return None when user has no timezone set
         assert result is None

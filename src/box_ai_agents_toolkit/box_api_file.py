@@ -1,4 +1,5 @@
-from typing import Any, Dict, Optional
+from datetime import timezone
+from typing import Any, Dict, List, Optional
 from xmlrpc.client import DateTime
 
 from box_sdk_gen import (
@@ -12,7 +13,7 @@ from box_sdk_gen import (
     UpdateFileByIdPermissions,
 )
 
-from .box_api_util_generic import log_box_api_error
+from .box_api_util_generic import log_box_api_error, current_user_timezone
 
 
 def box_file_info(client: BoxClient, file_id: str) -> Dict[str, Any]:
@@ -280,7 +281,7 @@ def box_file_set_description(
         return {"error": e.message}
 
 
-def box_file_set_retention_date(
+def box_file_retention_date_set(
     client: BoxClient,
     file_id: str,
     retention_date: DateTime,
@@ -299,9 +300,47 @@ def box_file_set_retention_date(
     """
 
     try:
+        if retention_date is not None:
+            # If datetime is naive (no timezone), add user's timezone or UTC
+            if retention_date.tzinfo is None:
+                user_tz = current_user_timezone(client)
+                if user_tz is not None:
+                    retention_date = retention_date.replace(tzinfo=user_tz)
+                else:
+                    retention_date = retention_date.replace(tzinfo=timezone.utc)
+        # '400 not a valid rfc 3339 formatted date; Request ID: 4fh1m2i7fxxmr844'
+        date_str = retention_date.strftime("%Y-%m-%dT%H:%M:%S%z")
         updated_file: FileFull = client.files.update_file_by_id(
             file_id=file_id,
-            retention_date=retention_date,
+            disposition_at=date_str,
+        )
+        return {"updated_file": updated_file.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_file_retention_date_clear(
+    client: BoxClient,
+    file_id: str,
+) -> Dict[str, Any]:
+    """
+    Clears the retention date of a file in Box.
+
+    Args:
+        client (BoxClient): An authenticated Box client.
+        file_id (str): The ID of the file to update.
+
+    Returns:
+        Dict[str, Any]: Information about the updated file including id and retention date.
+
+    """
+
+    try:
+        updated_file: FileFull = client.files.update_file_by_id(
+            file_id=file_id,
+            disposition_at=None,
         )
         return {"updated_file": updated_file.to_dict()}
 
@@ -483,7 +522,9 @@ def box_file_tag_list(
             file_id=file_id,
             fields=["tags"],
         )
-        tags = [tag.tag for tag in file.tags] if file.tags else []
+        tags = [tag for tag in file.tags] if file.tags else []
+        if tags is None or len(tags) == 0:
+            return {"message": "No tags found for this file."}
         return {"tags": tags}
 
     except BoxAPIError as e:
@@ -510,17 +551,18 @@ def box_file_tag_add(
     """
 
     try:
-        existing_tags = client.files.get_file_by_id(
+        existing_tags: List[str] = client.files.get_file_by_id(
             file_id=file_id,
             fields=["tags"],
         ).tags
-        tags = [t.tag for t in existing_tags] if existing_tags else []
+        tags = [t for t in existing_tags] if existing_tags else []
         if tag not in tags:
             tags.append(tag)
 
         updated_file = client.files.update_file_by_id(
             file_id=file_id,
             tags=tags,
+            fields=["tags"],
         )
         return {"updated_file": updated_file.to_dict()}
 
@@ -552,13 +594,14 @@ def box_file_tag_remove(
             file_id=file_id,
             fields=["tags"],
         ).tags
-        tags = [t.tag for t in existing_tags] if existing_tags else []
+        tags = [t for t in existing_tags] if existing_tags else []
         if tag in tags:
             tags.remove(tag)
 
         updated_file = client.files.update_file_by_id(
             file_id=file_id,
             tags=tags,
+            fields=["tags"],
         )
         return {"updated_file": updated_file.to_dict()}
 
