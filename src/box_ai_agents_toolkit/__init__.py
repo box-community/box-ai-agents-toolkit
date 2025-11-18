@@ -40,6 +40,11 @@ from box_ai_agents_toolkit.box_api_file import (
 from box_ai_agents_toolkit.box_api_file_representation import (
     box_file_text_extract,
 )
+
+from box_ai_agents_toolkit.box_api_file_transfer import (
+    box_file_download,
+    box_file_upload,
+)
 from box_ai_agents_toolkit.box_api_folder import (
     box_folder_copy,
     box_folder_create,
@@ -195,6 +200,9 @@ __all__ = [
     "box_file_tag_remove",
     # File Representations
     "box_file_text_extract",
+    # File Transfer
+    "box_file_download",
+    "box_file_upload",
     # Folders
     "box_folder_info",
     "box_folder_items_list",
