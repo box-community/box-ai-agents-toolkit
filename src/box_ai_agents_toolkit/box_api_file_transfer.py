@@ -4,23 +4,10 @@ import tempfile
 from typing import Any, Dict, Optional, Tuple, Union
 
 from box_sdk_gen import (
-    BoxAPIError,
     BoxClient,
-    File,
     UploadFileAttributes,
     UploadFileAttributesParentField,
-    GetFileThumbnailUrlExtension,
-    CopyFileParent,
-    UpdateFileByIdParent,
-    FileFull,
-    UpdateFileByIdLock,
-    UpdateFileByIdPermissions,
 )
-from requests import HTTPError
-
-from .box_api_util_http import _do_request
-
-from .box_api_util_generic import log_box_api_error
 
 
 def box_file_download(

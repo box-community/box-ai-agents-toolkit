@@ -8,9 +8,8 @@ from box_sdk_gen import (
 )
 from requests import HTTPError
 
-from .box_api_util_http import _do_request
-
 from .box_api_util_generic import log_box_api_error, log_generic_error
+from .box_api_util_http import _do_request
 
 
 class RepresentationError(Exception):

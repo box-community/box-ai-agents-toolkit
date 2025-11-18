@@ -14,7 +14,6 @@ from src.box_ai_agents_toolkit import (
     box_folder_favorites_remove,
     box_folder_info,
     box_folder_items_list,
-    box_folder_tag_list,
     box_folder_move,
     box_folder_rename,
     box_folder_set_collaboration,
@@ -22,6 +21,7 @@ from src.box_ai_agents_toolkit import (
     box_folder_set_sync,
     box_folder_set_upload_email,
     box_folder_tag_add,
+    box_folder_tag_list,
     box_folder_tag_remove,
 )
 from tests.conftest import BoxClient, SampleData

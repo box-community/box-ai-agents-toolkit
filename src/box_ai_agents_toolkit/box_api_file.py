@@ -5,15 +5,15 @@ from xmlrpc.client import DateTime
 from box_sdk_gen import (
     BoxAPIError,
     BoxClient,
-    GetFileThumbnailUrlExtension,
     CopyFileParent,
-    UpdateFileByIdParent,
     FileFull,
+    GetFileThumbnailUrlExtension,
     UpdateFileByIdLock,
+    UpdateFileByIdParent,
     UpdateFileByIdPermissions,
 )
 
-from .box_api_util_generic import log_box_api_error, current_user_timezone
+from .box_api_util_generic import current_user_timezone, log_box_api_error
 
 
 def box_file_info(client: BoxClient, file_id: str) -> Dict[str, Any]:

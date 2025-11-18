@@ -6,6 +6,7 @@ and ensure file operations work correctly against the Box service.
 
 import uuid
 from datetime import datetime, timedelta
+
 import pytest
 
 from src.box_ai_agents_toolkit import (
@@ -15,12 +16,12 @@ from src.box_ai_agents_toolkit import (
     box_file_lock,
     box_file_move,
     box_file_rename,
+    box_file_retention_date_clear,
+    box_file_retention_date_set,
     box_file_set_description,
     box_file_set_download_company,
     box_file_set_download_open,
     box_file_set_download_reset,
-    box_file_retention_date_set,
-    box_file_retention_date_clear,
     box_file_tag_add,
     box_file_tag_list,
     box_file_tag_remove,
@@ -178,7 +179,6 @@ def test_box_file_copy_default_name(
 ):
     """Test copying a file and preserving its original name."""
     source_file_id = file_test_data.test_files[0].id
-    source_name = file_test_data.test_files[0].name
     destination_folder_id = file_test_data.test_folder.id
 
     response = box_file_copy(
@@ -239,8 +239,9 @@ def test_box_file_copy_destination_not_found(
 def test_box_file_move_success(box_client_ccg: BoxClient, file_test_data: SampleData):
     """Test moving a file to a different folder."""
     # Create a file to move
-    from box_sdk_gen import UploadFileAttributes, UploadFileAttributesParentField
     from pathlib import Path
+
+    from box_sdk_gen import UploadFileAttributes, UploadFileAttributesParentField
 
     source_folder_id = file_test_data.test_folder.id
     test_data_path = Path(__file__).parent.joinpath("test_data").joinpath("Files")
@@ -303,8 +304,9 @@ def test_box_file_move_destination_not_found(
 def test_box_file_delete_success(box_client_ccg: BoxClient, file_test_data: SampleData):
     """Test deleting a file."""
     # Create a file to delete
-    from box_sdk_gen import UploadFileAttributes, UploadFileAttributesParentField
     from pathlib import Path
+
+    from box_sdk_gen import UploadFileAttributes, UploadFileAttributesParentField
 
     folder_id = file_test_data.test_folder.id
     test_data_path = Path(__file__).parent.joinpath("test_data").joinpath("Files")

@@ -1,7 +1,6 @@
 from datetime import datetime as DateTime
 from datetime import timezone
 from typing import Any, Dict, Optional
-from zoneinfo import ZoneInfo
 
 from box_sdk_gen import (
     BoxAPIError,
@@ -17,7 +16,7 @@ from box_sdk_gen import (
     UpdateTaskByIdCompletionRule,
 )
 
-from .box_api_util_generic import log_box_api_error, current_user_timezone
+from .box_api_util_generic import current_user_timezone, log_box_api_error
 
 
 def _task_create(

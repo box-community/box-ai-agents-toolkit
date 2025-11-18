@@ -3,8 +3,8 @@ from typing import Optional
 from zoneinfo import ZoneInfo
 
 from box_sdk_gen import (
-    BoxClient,
     BoxAPIError,
+    BoxClient,
     DataSanitizer,
 )
 
