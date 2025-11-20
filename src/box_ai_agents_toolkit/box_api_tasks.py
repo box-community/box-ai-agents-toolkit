@@ -1,7 +1,6 @@
 from datetime import datetime as DateTime
 from datetime import timezone
 from typing import Any, Dict, Optional
-from zoneinfo import ZoneInfo
 
 from box_sdk_gen import (
     BoxAPIError,
@@ -17,27 +16,7 @@ from box_sdk_gen import (
     UpdateTaskByIdCompletionRule,
 )
 
-from .box_api_util_generic import log_box_api_error
-
-
-def _current_user_timezone(client: BoxClient) -> Optional[ZoneInfo]:
-    """
-    Helper function to get the current user's timezone.
-    Args:
-        client (BoxClient): Authenticated Box client.
-    Returns:
-        Optional[ZoneInfo]: Timezone of the current user or None if not available.
-    """
-
-    user = client.users.get_user_me()
-    if user.timezone:
-        # Convert IANA timezone string (e.g., 'America/New_York') to ZoneInfo object
-        try:
-            return ZoneInfo(user.timezone)
-        except Exception:
-            # If timezone string is invalid, fall back to UTC
-            return ZoneInfo("UTC")
-    return None
+from .box_api_util_generic import current_user_timezone, log_box_api_error
 
 
 def _task_create(
@@ -69,7 +48,7 @@ def _task_create(
     if due_at is not None:
         # If datetime is naive (no timezone), add user's timezone or UTC
         if due_at.tzinfo is None:
-            user_tz = _current_user_timezone(client)
+            user_tz = current_user_timezone(client)
             if user_tz is not None:
                 due_at = due_at.replace(tzinfo=user_tz)
             else:
@@ -239,7 +218,7 @@ def box_task_update(
     if due_at is not None:
         # If datetime is naive (no timezone), add user's timezone or UTC
         if due_at.tzinfo is None:
-            user_tz = _current_user_timezone(client)
+            user_tz = current_user_timezone(client)
             if user_tz is not None:
                 due_at = due_at.replace(tzinfo=user_tz)
             else:

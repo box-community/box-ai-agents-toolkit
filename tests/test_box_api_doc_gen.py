@@ -12,11 +12,11 @@ from box_ai_agents_toolkit import (
     box_docgen_list_jobs_by_batch,
 )
 
-from .conftest import TestData
+from .conftest import SampleData
 
 
 def test_box_docgen_create_batch(
-    box_client_ccg: BoxClient, docgen_test_templates: TestData
+    box_client_ccg: BoxClient, docgen_test_templates: SampleData
 ):
     """
     Test creating a Box Doc Gen batch.
@@ -65,13 +65,13 @@ def test_box_docgen_create_batch(
     # Check if the batch creation was successful
     assert "error" not in batch, f"Error creating Doc Gen batch: {batch['error']}"
     assert "message" in batch, "Batch creation did not return a success message"
-    assert (
-        "Batch created successfully" in batch["message"]
-    ), "Batch creation message is incorrect"
+    assert "Batch created successfully" in batch["message"], (
+        "Batch creation message is incorrect"
+    )
 
 
 def test_box_docgen_create_single_file_from_user_input(
-    box_client_ccg: BoxClient, docgen_test_templates: TestData
+    box_client_ccg: BoxClient, docgen_test_templates: SampleData
 ):
     """
     Test creating a single document from a Doc Gen template using user input.
@@ -111,7 +111,7 @@ def test_box_docgen_create_single_file_from_user_input(
 
 
 def test_box_docgen_list_jobs_by_batch(
-    box_client_ccg: BoxClient, docgen_test_templates: TestData
+    box_client_ccg: BoxClient, docgen_test_templates: SampleData
 ):
     """
     Test listing Doc Gen jobs by batch.
@@ -153,9 +153,9 @@ def test_box_docgen_list_jobs_by_batch(
     # Check if the batch creation was successful
     assert "error" not in batch, f"Error creating Doc Gen batch: {batch['error']}"
     assert "message" in batch, "Batch creation did not return a success message"
-    assert (
-        "Batch created successfully" in batch["message"]
-    ), "Batch creation message is incorrect"
+    assert "Batch created successfully" in batch["message"], (
+        "Batch creation message is incorrect"
+    )
 
     # List the jobs in the created batch
     jobs = box_docgen_list_jobs_by_batch(
@@ -186,6 +186,6 @@ def test_box_docgen_list_jobs_by_batch(
     )
     # Check if the user job listing was successful
     assert isinstance(user_docgen_jobs, list), "User job listing did not return a list"
-    assert (
-        "error" not in user_docgen_jobs[0]
-    ), f"Error listing user Doc Gen jobs: {user_docgen_jobs[0]['error']}"
+    assert "error" not in user_docgen_jobs[0], (
+        f"Error listing user Doc Gen jobs: {user_docgen_jobs[0]['error']}"
+    )

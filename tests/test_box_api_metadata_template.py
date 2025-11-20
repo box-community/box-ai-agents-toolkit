@@ -16,7 +16,7 @@ from src.box_ai_agents_toolkit import (
     box_metadata_template_list,
     box_metadata_update_instance_on_file,
 )
-from tests.conftest import TestData
+from tests.conftest import SampleData
 
 
 def _get_metadata() -> Dict[str, Any]:
@@ -34,7 +34,7 @@ def _get_metadata() -> Dict[str, Any]:
 
 
 def test_box_metadata_find_template_by_name(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test finding a metadata template by display name."""
 
@@ -80,7 +80,7 @@ def test_box_metadata_find_template_by_name(
 
 
 def test_box_metadata_template_get_by_key(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test retrieving a metadata template by its key."""
     assert metadata_test_data.test_metadata_template.template_key is not None, (
@@ -115,7 +115,7 @@ def test_box_metadata_template_get_by_key(
 
 
 def test_box_metadata_template_list(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test listing metadata templates."""
     response = box_metadata_template_list(box_client_ccg)
@@ -148,7 +148,7 @@ def test_box_metadata_template_list(
 
 
 def test_box_metadata_set_get_instance_on_file(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test setting a metadata template instance on a file."""
     file_id = metadata_test_data.test_files[0].id
@@ -202,7 +202,7 @@ def test_box_metadata_set_get_instance_on_file(
 
 
 def test_box_metadata_delete_instance_on_file(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test deleting a metadata template instance on a file."""
     file_id = metadata_test_data.test_files[1].id
@@ -252,7 +252,7 @@ def test_box_metadata_delete_instance_on_file(
 
 
 def test_box_metadata_update_instance_on_file_full_update(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating a metadata template instance on a file."""
     file_id = metadata_test_data.test_files[0].id
@@ -320,7 +320,7 @@ def test_box_metadata_update_instance_on_file_full_update(
 
 
 def test_box_metadata_update_instance_on_file_partial_update(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating a metadata template instance on a file with partial update."""
     file_id = metadata_test_data.test_files[0].id
@@ -383,7 +383,7 @@ def test_box_metadata_update_instance_on_file_partial_update(
 
 
 def test_box_metadata_update_instance_on_file_partial_update_remove_not_included(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating a metadata template instance on a file with partial update and removing non-included fields."""
     file_id = metadata_test_data.test_files[0].id
@@ -446,7 +446,7 @@ def test_box_metadata_update_instance_on_file_partial_update_remove_not_included
 
 
 def test_box_metadata_update_instance_on_file_add_missing_fields(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating a metadata template instance on a file by adding missing fields."""
     file_id = metadata_test_data.test_files[0].id
@@ -614,7 +614,7 @@ def test_box_metadata_template_create_with_template_key(
 
 
 def test_box_metadata_template_get_by_id(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test retrieving a metadata template by its ID."""
     assert metadata_test_data.test_metadata_template.id is not None
@@ -656,7 +656,7 @@ def test_box_metadata_template_get_by_id_not_found(
 
 
 def test_box_metadata_update_no_changes(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating metadata when there are no changes to make."""
     file_id = metadata_test_data.test_files[0].id
@@ -709,7 +709,7 @@ def test_box_metadata_update_no_changes(
 
 
 def test_box_metadata_update_instance_on_non_existent_file(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test updating metadata on a non-existent file."""
     fake_file_id = "999999999999"
@@ -730,7 +730,7 @@ def test_box_metadata_update_instance_on_non_existent_file(
 
 
 def test_box_metadata_set_instance_duplicate(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test setting metadata instance when one already exists (should fail)."""
     file_id = metadata_test_data.test_files[0].id
@@ -761,7 +761,7 @@ def test_box_metadata_set_instance_duplicate(
 
 
 def test_box_metadata_delete_non_existent_instance(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test deleting a metadata instance that doesn't exist."""
     file_id = (
@@ -793,7 +793,7 @@ def test_box_metadata_delete_non_existent_instance(
 
 
 def test_box_metadata_delete_non_existing_file(
-    box_client_ccg: BoxClient, metadata_test_data: TestData
+    box_client_ccg: BoxClient, metadata_test_data: SampleData
 ):
     """Test deleting a metadata instance on a non-existing file."""
     fake_file_id = "999999999999"

@@ -8,8 +8,10 @@ from box_sdk_gen import (
     AiItemAskTypeField,
     AiItemBase,
     AiItemBaseTypeField,
+    AiMultipleAgentResponse,
     AiResponse,
     AiResponseFull,
+    AiSingleAgentResponseFull,
     BoxAPIError,
     BoxClient,
     CreateAiAskMode,
@@ -17,6 +19,120 @@ from box_sdk_gen import (
     CreateAiExtractStructuredFieldsOptionsField,
     CreateAiExtractStructuredMetadataTemplate,
 )
+
+from .box_api_util_generic import log_box_api_error
+
+
+def box_ai_agents_list(
+    client: BoxClient,
+    limit: Optional[int] = 1000,
+) -> Dict[str, Any]:
+    """List available AI agents in Box.
+    Args:
+        client (BoxClient): The Box client instance.
+    Returns:
+        Dict[str, Any]: A dictionary containing the list of AI agents.
+    """
+    try:
+        response: AiMultipleAgentResponse = client.ai_studio.get_ai_agents(
+            include_box_default=True,
+            limit=limit,
+        )
+        if response.entries is None or len(response.entries) == 0:
+            return {"message": "No AI agents found in Box AI Studio"}
+
+        # check if api returned a marker for next page
+        if response.next_marker:
+            marker = response.next_marker
+            while marker:
+                next_page: AiMultipleAgentResponse = client.ai_studio.get_ai_agents(
+                    include_box_default=True,
+                    limit=limit,
+                    marker=marker,
+                )
+                if next_page.entries:
+                    response.entries.extend(next_page.entries)
+                marker = next_page.next_marker if next_page.next_marker else None
+
+        agents_list = [agent.to_dict() for agent in response.entries]
+        return {"ai_agents": agents_list}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_ai_agents_search_by_name(
+    client: BoxClient,
+    name: str,
+    limit: Optional[int] = 1000,
+) -> Dict[str, Any]:
+    """Search for AI agents in Box by name.
+    Args:
+        client (BoxClient): The Box client instance.
+        name (str): The name filter to search for AI agents.
+    Returns:
+        Dict[str, Any]: A dictionary containing the list of matching AI agents.
+    """
+    try:
+        response: AiMultipleAgentResponse = client.ai_studio.get_ai_agents(
+            include_box_default=True,
+            limit=limit,
+        )
+
+        # check if api returned a marker for next page
+        if response.next_marker:
+            marker = response.next_marker
+            while marker:
+                next_page: AiMultipleAgentResponse = client.ai_studio.get_ai_agents(
+                    include_box_default=True,
+                    limit=limit,
+                    marker=marker,
+                )
+                if next_page.entries:
+                    response.entries.extend(next_page.entries)
+                marker = next_page.next_marker if next_page.next_marker else None
+
+        agents_list = [agent.to_dict() for agent in response.entries]
+
+        # filter the raw agents list by name_filter (case insensitive)
+        filtered_agents = [
+            agent
+            for agent in agents_list
+            if name.lower() in agent.get("name", "").lower()
+        ]
+        if len(filtered_agents) == 0:
+            return {"message": f'No AI agents found matching name filter: "{name}"'}
+        return {"ai_agents": filtered_agents}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
+
+
+def box_ai_agent_info_by_id(
+    client: BoxClient,
+    ai_agent_id: str,
+) -> Dict[str, Any]:
+    """Get information about a specific AI agent by ID.
+    Args:
+        client (BoxClient): The Box client instance.
+        ai_agent_id (str): The ID of the AI agent to retrieve information for.
+    Returns:
+        Dict[str, Any]: A dictionary containing the AI agent information.
+    """
+    if ai_agent_id is None or ai_agent_id.strip() == "":
+        return {"error": "AI agent ID is required"}
+    try:
+        response: AiSingleAgentResponseFull = client.ai_studio.get_ai_agent_by_id(
+            agent_id=ai_agent_id, fields=["ask", "text_gen", "extract"]
+        )
+
+        return {"ai_agent": response.to_dict()}
+
+    except BoxAPIError as e:
+        log_box_api_error(e)
+        return {"error": e.message}
 
 
 def box_ai_ask_file_single(
@@ -48,6 +164,7 @@ def box_ai_ask_file_single(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 
@@ -85,6 +202,7 @@ def box_ai_ask_file_multi(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 
@@ -118,6 +236,7 @@ def box_ai_ask_hub(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 
@@ -176,6 +295,7 @@ def box_ai_extract_freeform(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 
@@ -311,6 +431,7 @@ def box_ai_extract_structured_using_fields(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 
@@ -464,6 +585,7 @@ def box_ai_extract_structured_using_template(
             return {"message": "No response from Box AI"}
         return {"AI_response": response.to_dict()}
     except BoxAPIError as e:
+        log_box_api_error(e)
         return {"error": e.message}
 
 

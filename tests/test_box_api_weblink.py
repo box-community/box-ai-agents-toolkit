@@ -12,7 +12,7 @@ from box_ai_agents_toolkit import (
     box_web_link_update_by_id,
 )
 
-from .conftest import TestData
+from .conftest import SampleData
 
 
 def _create_test_web_link(
@@ -26,7 +26,7 @@ def _create_test_web_link(
     )
 
 
-def test_box_web_link_create(box_client_ccg: BoxClient, web_link_test_data: TestData):
+def test_box_web_link_create(box_client_ccg: BoxClient, web_link_test_data: SampleData):
     url = "https://www.example.com"
 
     # make sure the folder exists
@@ -87,7 +87,7 @@ def test_box_web_link_create_with_error(
 
 
 def test_box_web_link_get_by_id(
-    box_client_ccg: BoxClient, web_link_test_data: TestData
+    box_client_ccg: BoxClient, web_link_test_data: SampleData
 ):
     existing_web_link = _create_test_web_link(
         client=box_client_ccg,
@@ -118,7 +118,7 @@ def test_box_web_link_get_by_id(
 
 
 def test_box_web_link_get_by_id_with_error(
-    box_client_ccg: BoxClient, web_link_test_data: TestData
+    box_client_ccg: BoxClient, web_link_test_data: SampleData
 ):
     web_link_id = "1234"  # invalid web link id
 
@@ -137,7 +137,7 @@ def test_box_web_link_get_by_id_with_error(
 
 
 def test_box_web_link_update_by_id(
-    box_client_ccg: BoxClient, web_link_test_data: TestData
+    box_client_ccg: BoxClient, web_link_test_data: SampleData
 ):
     existing_web_link = _create_test_web_link(
         client=box_client_ccg,
@@ -199,7 +199,7 @@ def test_box_web_link_update_by_id_with_error(box_client_ccg: BoxClient):
 
 
 def test_box_web_link_delete_by_id(
-    box_client_ccg: BoxClient, web_link_test_data: TestData
+    box_client_ccg: BoxClient, web_link_test_data: SampleData
 ):
     existing_web_link = _create_test_web_link(
         client=box_client_ccg,
