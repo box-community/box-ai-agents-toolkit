@@ -95,7 +95,7 @@ def box_ai_agents_search_by_name(
 
         agents_list = [agent.to_dict() for agent in response.entries]
 
-        # cfilter the raw agents list by name_filter (case insensitive)
+        # filter the raw agents list by name_filter (case insensitive)
         filtered_agents = [
             agent
             for agent in agents_list

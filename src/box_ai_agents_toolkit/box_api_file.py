@@ -1,6 +1,5 @@
-from datetime import timezone
+from datetime import timezone, datetime
 from typing import Any, Dict, List, Optional
-from xmlrpc.client import DateTime
 
 from box_sdk_gen import (
     BoxAPIError,
@@ -284,7 +283,7 @@ def box_file_set_description(
 def box_file_retention_date_set(
     client: BoxClient,
     file_id: str,
-    retention_date: DateTime,
+    retention_date: datetime,
 ) -> Dict[str, Any]:
     """
     Sets the retention date of a file in Box.  This date cannot be shortened once set on a file.
@@ -352,7 +351,7 @@ def box_file_retention_date_clear(
 def box_file_lock(
     client: BoxClient,
     file_id: str,
-    lock_expires_at: Optional[DateTime] = None,
+    lock_expires_at: Optional[datetime] = None,
     is_download_prevented: Optional[bool] = None,
 ) -> Dict[str, Any]:
     """
