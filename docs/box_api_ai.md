@@ -2,6 +2,41 @@
 
 Tools for leveraging Box AI to ask questions and extract information from files.
 
+## AI Agents Management
+
+### List Available AI Agents
+
+List all available AI agents in Box AI Studio.
+
+```python
+from box_ai_agents_toolkit import box_ai_agents_list
+
+response = box_ai_agents_list(client)
+print("AI Agents:", response)
+```
+
+### Search AI Agents by Name
+
+Search for AI agents by name filter (case insensitive).
+
+```python
+from box_ai_agents_toolkit import box_ai_agents_search_by_name
+
+response = box_ai_agents_search_by_name(client, name="summary")
+print("Matching AI Agents:", response)
+```
+
+### Get AI Agent Information
+
+Retrieve detailed information about a specific AI agent by ID.
+
+```python
+from box_ai_agents_toolkit import box_ai_agent_info_by_id
+
+response = box_ai_agent_info_by_id(client, ai_agent_id="1234567890")
+print("AI Agent Info:", response)
+```
+
 ## Ask AI Questions
 
 ### Ask About a Single File
@@ -47,7 +82,8 @@ Extract information from files using natural language prompts.
 ```python
 from box_ai_agents_toolkit import box_ai_extract_freeform
 
-response = box_ai_extract_freeform(client, file_id="12345", prompt="Extract date, name, and contract number from this file.")
+file_ids = ["12345", "67890"]
+response = box_ai_extract_freeform(client, file_ids=file_ids, prompt="Extract date, name, and contract number from these files.")
 print("AI Extract Response:", response)
 ```
 
@@ -58,11 +94,12 @@ Extract structured information by defining specific fields.
 ```python
 from box_ai_agents_toolkit import box_ai_extract_structured_using_fields
 
+file_ids = ["12345", "67890"]
 fields = [
     {"key": "contract_date", "type": "date", "description": "The contract signing date"},
     {"key": "parties", "type": "array", "description": "Names of contracting parties"}
 ]
-response = box_ai_extract_structured_using_fields(client, file_id="12345", fields=fields)
+response = box_ai_extract_structured_using_fields(client, file_ids=file_ids, fields=fields)
 print("Structured Extract Response:", response)
 ```
 
@@ -73,11 +110,12 @@ Use enhanced extraction capabilities with improved formatting.
 ```python
 from box_ai_agents_toolkit import box_ai_extract_structured_enhanced_using_fields
 
+file_ids = ["12345", "67890"]
 fields = [
     {"key": "contract_date", "type": "date", "description": "The contract signing date"},
     {"key": "parties", "type": "array", "description": "Names of contracting parties"}
 ]
-response = box_ai_extract_structured_enhanced_using_fields(client, file_id="12345", fields=fields)
+response = box_ai_extract_structured_enhanced_using_fields(client, file_ids=file_ids, fields=fields)
 print("Enhanced Structured Extract Response:", response)
 ```
 
@@ -88,7 +126,8 @@ Extract information using a predefined metadata template.
 ```python
 from box_ai_agents_toolkit import box_ai_extract_structured_using_template
 
-response = box_ai_extract_structured_using_template(client, file_id="12345", template_key="contract_template")
+file_ids = ["12345", "67890"]
+response = box_ai_extract_structured_using_template(client, file_ids=file_ids, template_key="contract_template")
 print("Template-based Extract Response:", response)
 ```
 
@@ -99,7 +138,8 @@ Use enhanced extraction with a metadata template.
 ```python
 from box_ai_agents_toolkit import box_ai_extract_structured_enhanced_using_template
 
-response = box_ai_extract_structured_enhanced_using_template(client, file_id="12345", template_key="contract_template")
+file_ids = ["12345", "67890"]
+response = box_ai_extract_structured_enhanced_using_template(client, file_ids=file_ids, template_key="contract_template")
 print("Enhanced Template-based Extract Response:", response)
 ```
 

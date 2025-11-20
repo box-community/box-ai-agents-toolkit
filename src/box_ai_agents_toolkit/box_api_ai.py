@@ -70,7 +70,7 @@ def box_ai_agents_search_by_name(
     """Search for AI agents in Box by name.
     Args:
         client (BoxClient): The Box client instance.
-        name_filter (str): The name filter to search for AI agents.
+        name (str): The name filter to search for AI agents.
     Returns:
         Dict[str, Any]: A dictionary containing the list of matching AI agents.
     """
