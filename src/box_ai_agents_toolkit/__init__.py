@@ -7,6 +7,9 @@ from box_sdk_gen import (
 )
 
 from box_ai_agents_toolkit.box_api_ai import (
+    box_ai_agent_info_by_id,
+    box_ai_agents_list,
+    box_ai_agents_search_by_name,
     box_ai_ask_file_multi,
     box_ai_ask_file_single,
     box_ai_ask_hub,
@@ -169,6 +172,10 @@ __all__ = [
     "File",
     "Folder",
     "SearchForContentContentTypes",
+    # Box AI
+    "box_ai_agents_list",
+    "box_ai_agents_search_by_name",
+    "box_ai_agent_info_by_id",
     "box_ai_ask_file_multi",
     "box_ai_ask_file_single",
     "box_ai_ask_hub",

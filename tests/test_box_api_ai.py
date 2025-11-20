@@ -1,8 +1,11 @@
 from typing import Dict
 
-from box_sdk_gen import BoxClient
+from box_sdk_gen import AiStudioAgentAsk, BoxAPIError, BoxClient
 
 from box_ai_agents_toolkit import (
+    box_ai_agent_info_by_id,
+    box_ai_agents_list,
+    box_ai_agents_search_by_name,
     box_ai_ask_file_multi,
     box_ai_ask_file_single,
     box_ai_ask_hub,
@@ -13,6 +16,139 @@ from box_ai_agents_toolkit import (
     box_ai_extract_structured_using_template,
 )
 from tests.conftest import SampleData
+
+
+def test_box_ai_agents_list(box_client_ccg: BoxClient):
+    """Test the box_ai_agents_list function."""
+    response = box_ai_agents_list(client=box_client_ccg)
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" not in response
+    assert "ai_agents" in response
+
+
+def test_box_ai_agents_list_limit(box_client_ccg: BoxClient):
+    """Test the box_ai_agents_list function with limit."""
+    response = box_ai_agents_list(client=box_client_ccg, limit=2)
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" not in response
+    assert "ai_agents" in response
+
+
+def test_box_ai_agents_list_bad_request(box_client_ccg: BoxClient):
+    """Test the box_ai_agents_list function with limit."""
+    response = box_ai_agents_list(client=box_client_ccg, limit=-2)
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" in response
+    assert "ai_agents" not in response
+
+
+def test_box_ai_agents_search_by_name(
+    box_client_ccg: BoxClient, ai_test_data: SampleData
+):
+    """Test the box_ai_agents_search_by_name function."""
+    response = box_ai_agents_search_by_name(
+        client=box_client_ccg,
+        name="Box Default",
+        limit=2,
+    )
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" not in response
+    assert "ai_agents" in response
+
+
+def test_box_ai_agents_search_by_name_non_existing(box_client_ccg: BoxClient):
+    """Test the box_ai_agents_search_by_name function with non-existing name."""
+    response = box_ai_agents_search_by_name(
+        client=box_client_ccg,
+        name="Non Existing Agent Name 12345",
+    )
+
+    assert isinstance(response, Dict)
+    assert "message" in response
+    assert "error" not in response
+    assert "ai_agents" not in response
+
+
+def test_box_ai_agents_search_by_name_bad_request(box_client_ccg: BoxClient):
+    """Test the box_ai_agents_search_by_name function with bad request."""
+    response = box_ai_agents_search_by_name(
+        client=box_client_ccg,
+        name="",
+        limit=-5,
+    )
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" in response
+    assert "ai_agents" not in response
+
+
+def test_box_ai_agent_info_by_id(box_client_ccg: BoxClient, ai_test_data: SampleData):
+    """Test the box_ai_agent_info_by_id function."""
+
+    try:
+        # lets first create an agent to get its id
+        new_agent = box_client_ccg.ai_studio.create_ai_agent(
+            name="Test Agent for Info By ID",
+            access_state="enabled",
+            ask=AiStudioAgentAsk(
+                access_state="enabled",
+                description="Test agent created for testing box_ai_agent_info_by_id",
+            ),
+        )
+        response = box_ai_agent_info_by_id(
+            client=box_client_ccg,
+            ai_agent_id=new_agent.id,
+        )
+
+        assert isinstance(response, Dict)
+        assert "message" not in response
+        assert "error" not in response
+        assert "ai_agent" in response
+        assert response["ai_agent"]["id"] == new_agent.id
+        assert response["ai_agent"]["ask"] is not None
+
+    except BoxAPIError as e:
+        assert False, f"Failed to create AI agent for testing: {e.message}"
+
+    finally:
+        # cleanup - delete the created agent
+        if new_agent and new_agent.id:
+            box_client_ccg.ai_studio.delete_ai_agent_by_id(agent_id=new_agent.id)
+
+
+def test_box_ai_agent_info_by_id_bad_request(box_client_ccg: BoxClient):
+    """Test the box_ai_agent_info_by_id function with bad request."""
+    response = box_ai_agent_info_by_id(
+        client=box_client_ccg,
+        ai_agent_id="",  # invalid id
+    )
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" in response
+    assert "ai_agent" not in response
+
+
+def test_box_ai_agent_info_by_id_not_found(box_client_ccg: BoxClient):
+    """Test the box_ai_agent_info_by_id function with bad request."""
+    response = box_ai_agent_info_by_id(
+        client=box_client_ccg,
+        ai_agent_id="1234",  # invalid id
+    )
+
+    assert isinstance(response, Dict)
+    assert "message" not in response
+    assert "error" in response
+    assert "ai_agent" not in response
 
 
 def test_box_ai_ask_file(box_client_ccg: BoxClient, ai_test_data: SampleData):
@@ -515,6 +651,27 @@ def test_box_ai_extract_structured_fields_without_options(
     )
     assert isinstance(response, Dict)
     assert "AI_response" in response or "error" in response
+
+
+def test_box_ai_extract_structured_fields_bad_request(
+    box_client_ccg: BoxClient, ai_test_data: SampleData
+):
+    """Test box_ai_extract_structured_using_fields with bad request (invalid field type)."""
+    fields = [
+        {
+            "type": "invalid_type",  # Invalid type
+            "key": "bad_field",
+            "displayName": "Bad Field",
+            "description": "Field with invalid type",
+        }
+    ]
+    response = box_ai_extract_structured_using_fields(
+        client=box_client_ccg,
+        file_ids="non existing_file_id",  # Invalid file ID
+        fields=fields,
+    )
+    assert isinstance(response, Dict)
+    assert "error" in response
 
 
 def test_box_ai_extract_structured_using_template_with_custom_agent(
