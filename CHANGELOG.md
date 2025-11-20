@@ -1,5 +1,9 @@
 # Changelog
 ## 0.1.2 - 2025-11-05
+## 0.1.5 - 2025-11-20
+
+* Fixing JWT dependency (f336f5a)
+* Update version to 0.1.4 and changelog (302ad5d)
 ## 0.1.4 - 2025-11-20
 
 * RB/20251117 files (#13) (6dc68ab)
